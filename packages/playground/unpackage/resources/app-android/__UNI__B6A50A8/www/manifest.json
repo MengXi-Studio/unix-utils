@@ -10,15 +10,13 @@
     "styleIsolationVersion": "2",
     "vapor": true,
     "vapor-render-target": "bytecode",
-    "compilerVersion": "5.24"
+    "compilerVersion": "5.26"
   },
   "app-android": {
     "distribute": {
       "modules": {
-        "uni-event": {},
         "uni-getSystemInfo": {},
         "uni-prompt": {},
-        "uni-dialogPage": {},
         "uni-form": {}
       }
     }

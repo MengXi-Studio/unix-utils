@@ -38,44 +38,17 @@ showToastError('失败')
 showToastInfo('消息')
 ```
 
-## App 端接入（自绘通道，必需）
+## App 端接入（UTS 直挂通道，必需）
 
-App-Android / App-iOS 走窗口级自绘（dialogPage 承载页），需完成以下三步：
+App-Android / App-iOS 走 UTS 直挂系统窗口（Android `WindowManager` / iOS `UIWindow`，免注册、免承载页），只需将随包附带的 UTS 插件复制到工程 `uni_modules/`：
 
-### 1. 复制承载页到业务工程
-
-将 `node_modules/@meng-xi/unix-utils/src/toast/channels/app/dialog-page.uvue`
-复制到业务工程的 `pages/toast/dialog-page.uvue`。
-
-### 2. 在 pages.json 中注册
-
-```json
-{
-  "pages": [
-    {
-      "path": "pages/toast/dialog-page",
-      "style": {
-        "navigationStyle": "custom",
-        "backgroundColor": "transparent",
-        "app-plus": { "popGesture": "none" }
-      }
-    }
-  ]
-}
+```shell
+cp -R node_modules/@meng-xi/unix-utils/uni-modules/unix-window uni_modules/
 ```
 
-### 3. 配置承载页路径
+> UTS 插件必须位于工程 `uni_modules/` 目录（编译器不扫描 node_modules）。漏复制时 App 端编译期即报错（可发现性好）。插件挂窗失败时自动降级 `uni.showToast` 原生通道并输出日志。
 
-```ts
-import { configureToast } from '@meng-xi/unix-utils'
-
-// #ifdef APP
-configureToast({ dialogPagePath: 'pages/toast/dialog-page' })
-// #endif
-```
-
-> 未配置时默认指向 `node_modules/@meng-xi/unix-utils/src/toast/channels/app/dialog-page`，
-> 打包后该路径不可用，因此必须在 App 端显式覆盖。
+若以 uni_modules 形式整体安装本包，插件目录会随 sync 机制一并就位，无需手动复制。
 
 ## 其他端
 

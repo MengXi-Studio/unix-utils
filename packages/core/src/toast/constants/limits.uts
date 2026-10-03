@@ -7,6 +7,3 @@ export const WECHAT_TITLE_MAX_LENGTH: number = 7
 
 /** 原生通道端（鸿蒙等非微信、非自绘）title 最大字符数，超出加省略号 */
 export const NATIVE_TITLE_MAX_LENGTH: number = 20
-
-/** toast 隐藏后关闭承载页的延迟（毫秒），等待退出动画 */
-export const DIALOG_CLOSE_DELAY: number = 300

@@ -14,6 +14,6 @@
         "enable" : false
     },
     "mp-weixin" : {
-        "appid" : "wx0000000000000000"
+        "appid" : null
     }
 }

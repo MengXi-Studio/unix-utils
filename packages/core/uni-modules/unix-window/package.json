@@ -1,0 +1,17 @@
+{
+  "id": "unix-window",
+  "displayName": "unix-window",
+  "version": "0.1.0",
+  "description": "unix-utils App 端直挂系统窗口通道（Android WindowManager / iOS UIWindow），免注册窗口级自绘，供 toast / showModal 等模块复用",
+  "uni_modules": {
+    "dependencies": [],
+    "platforms": {
+      "App": {
+        "Android": {
+          "minVersion": "21"
+        },
+        "iOS": {}
+      }
+    }
+  }
+}

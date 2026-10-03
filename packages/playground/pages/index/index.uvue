@@ -4,19 +4,14 @@
 		<button @click="onError">错误</button>
 		<button @click="onInfo">信息</button>
 		<button @click="onWarning">警告</button>
+		<button @click="onTop">顶部</button>
+		<button @click="onMask">蒙层</button>
+		<button @click="onHide">手动隐藏</button>
 	</view>
 </template>
 
 <script setup lang="uts">
-	import { showToast, showToastSuccess, showToastError, showToastInfo, configureToast, ToastIcon } from '@meng-xi/unix-utils'
-
-	onLoad(() => {
-		// #ifdef APP
-		configureToast({
-			dialogPagePath: 'pages/toast/dialog-page'
-		})
-		// #endif
-	})
+	import { showToast, showToastSuccess, showToastError, showToastInfo, hideToast, ToastIcon, ToastPosition } from '@meng-xi/unix-utils'
 
 	function onSuccess(): void {
 		showToastSuccess('操作成功')
@@ -37,6 +32,30 @@
 			mask: true,
 			duration: 2000
 		})
+	}
+
+	function onTop(): void {
+		showToast({
+			title: '顶部提示',
+			position: ToastPosition.TOP
+		})
+	}
+
+	function onMask(): void {
+		showToast({
+			title: '蒙层提示（触摸被拦截）',
+			mask: true
+		})
+	}
+
+	function onHide(): void {
+		showToast({
+			title: '5 秒后自动消失，可提前隐藏',
+			duration: 5000
+		})
+		setTimeout(() => {
+			hideToast()
+		}, 1500)
 	}
 </script>
 

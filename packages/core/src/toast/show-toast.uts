@@ -1,8 +1,9 @@
 /**
  * toast 主流程：归一化 → 通道分发 → 回调
  *
- * 通道分发（v0.6）：
- * - App-Android / App-iOS / Web：自绘通道（App 为 dialogPage 承载页；Web 为 DOM 单例）
+ * 通道分发（v0.7）：
+ * - App-Android / App-iOS：UTS 直挂系统窗口通道（unix-window 插件，免注册）
+ * - Web：自绘通道（DOM 单例）
  * - 其他端（微信 / 鸿蒙）：uni 原生通道
  */
 import type { ToastOptions, ToastFail, ToastResult, NormalizedOptions } from './types'

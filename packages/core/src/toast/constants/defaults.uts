@@ -11,6 +11,3 @@ export const DEFAULT_ICON: ToastIcon = ToastIcon.SUCCESS
 
 /** 默认是否显示透明蒙层 */
 export const DEFAULT_MASK: boolean = false
-
-/** 默认 dialogPage 承载页路径（npm 安装形态下的相对路径） */
-export const DEFAULT_DIALOG_PATH: string = 'node_modules/@meng-xi/unix-utils/src/toast/channels/app/dialog-page'

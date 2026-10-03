@@ -20,6 +20,7 @@
 	},
 	"files": [
 		"src",
+		"uni-modules",
 		"README.md",
 		"README-en.md"
 	],

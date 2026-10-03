@@ -75,6 +75,4 @@ export type ToastDefaults = {
 	icon: ToastIcon | null
 	/** 默认是否显示蒙层 */
 	mask: boolean | null
-	/** App 自绘通道承载页路径（需业务侧 pages.json 注册）；null 使用库内默认路径 */
-	dialogPath: string | null
 }

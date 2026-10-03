@@ -5,18 +5,6 @@
 			"style": {
 				"navigationBarTitleText": "unix-utils"
 			}
-		},
-		{
-			"path": "pages/toast/dialog-page",
-			"style": {
-				"navigationStyle": "custom",
-				"backgroundColor": "transparent",
-				"backgroundColorTop": "transparent",
-				"backgroundColorBottom": "transparent",
-				"app-plus": {
-					"popGesture": "none"
-				}
-			}
 		}
 	],
 	"globalStyle": {

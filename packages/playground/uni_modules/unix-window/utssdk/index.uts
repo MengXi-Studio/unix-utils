@@ -1,0 +1,29 @@
+/**
+ * unix-window 插件默认入口（Web / 小程序等非 App 平台兜底）
+ *
+ * 直挂系统窗口（WindowManager / UIWindow）仅在 App 端有意义，
+ * 非 App 平台为空实现并输出日志，便于确认通道分发正确。
+ *
+ * API 采用原始类型参数：UTS 插件代理（uts-proxy）不转发 type 导出，
+ * 复杂对象类型无法跨代理边界引用，故不使用 options 对象签名。
+ */
+
+/**
+ * 展示直挂窗口 Toast（非 App 平台空实现）
+ * @param title 提示内容
+ * @param icon 图标标识（success / error / warning / loading / none，已由库内归一化）
+ * @param mask 是否显示蒙层（true 时拦截触摸，false 时触摸穿透）
+ * @param duration 展示时长（毫秒），插件内部计时到期自动隐藏
+ * @param position 位置（top / center / bottom）
+ * @param fail 失败回调（挂窗失败时触发，errMsg 为原因）
+ */
+export function showWindowToast(title: string, icon: string, mask: boolean, duration: number, position: string, fail: ((errMsg: string) => void) | null): void {
+	console.log('[unix-window] 当前平台不支持直挂系统窗口通道，忽略 title=' + title)
+}
+
+/**
+ * 隐藏直挂窗口 Toast（非 App 平台空实现）
+ */
+export function hideWindowToast(): void {
+	console.log('[unix-window] 当前平台不支持直挂系统窗口通道，忽略 hide')
+}
