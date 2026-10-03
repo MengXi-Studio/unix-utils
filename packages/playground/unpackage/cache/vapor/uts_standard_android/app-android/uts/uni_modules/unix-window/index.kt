@@ -58,9 +58,9 @@ fun positionGravity(position: String): Int {
     }
     return Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL
 }
-fun screenFifteenPercent(activity: Activity): Int {
+fun screenEdgeOffset(activity: Activity): Int {
     val h = UTSNumber.from(activity.getResources().getDisplayMetrics().heightPixels)
-    return (h * 0.15).toInt()
+    return (h * 0.1).toInt()
 }
 fun dp2pxI(activity: Activity, dp: Number): Int {
     val density = UTSNumber.from(activity.getResources().getDisplayMetrics().density)
@@ -162,10 +162,10 @@ fun buildCardParams(activity: Activity, position: String, token: IBinder): Windo
     params.height = WindowManager.LayoutParams.WRAP_CONTENT
     params.gravity = positionGravity(position)
     if (position == "top") {
-        params.y = screenFifteenPercent(activity)
+        params.y = screenEdgeOffset(activity)
     }
     if (position == "bottom") {
-        params.y = -screenFifteenPercent(activity)
+        params.y = screenEdgeOffset(activity)
     }
     params.token = token
     return params
@@ -186,7 +186,7 @@ fun showWindowToast(title: String, icon: String, mask: Boolean, duration: Number
             val positionChanged = lastPosition != position
             val needRebuildForIcon = iconText == null && iconEmoji(icon).length > 0
             if (existing != null && !maskChanged && !positionChanged && !needRebuildForIcon) {
-                console.log("[unix-window] 复用已有窗口视图，更新文案 position=" + position, " at uni_modules/unix-window/utssdk/app-android/index.uts:221")
+                console.log("[unix-window] 复用已有窗口视图，更新文案 position=" + position, " at uni_modules/unix-window/utssdk/app-android/index.uts:224")
                 updateTexts(icon, title)
                 scheduleHide(duration)
                 return
@@ -226,7 +226,7 @@ fun showWindowToast(title: String, icon: String, mask: Boolean, duration: Number
             toastRoot = card
             lastMask = mask
             lastPosition = position
-            console.log("[unix-window] addView 成功 mask=" + mask + " position=" + position + " gravity=" + cardParams.gravity + " y=" + cardParams.y, " at uni_modules/unix-window/utssdk/app-android/index.uts:265")
+            console.log("[unix-window] addView 成功 mask=" + mask + " position=" + position + " gravity=" + cardParams.gravity + " y=" + cardParams.y, " at uni_modules/unix-window/utssdk/app-android/index.uts:268")
             card.setAlpha(0.0f)
             card.animate().alpha(1.0f).setDuration(200).start()
             if (maskRoot != null) {

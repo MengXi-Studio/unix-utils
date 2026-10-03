@@ -22,3 +22,12 @@
 11. **插件跨包导入路径**：core npm 包源码内写 `import { ... } from '@/uni_modules/unix-window'`，编译时解析到**工程** `uni_modules/` 下的插件（npm 源码与工程插件靠 id 约定解耦，UTS 插件必须由业务侧复制到工程 uni_modules/，node_modules 不被扫描）。
 12. **HBuilderX cli 实际路径**：`/Applications/HBuilderX.app/Contents/MacOS/cli`（`Contents/HBuilderX/cli` 不存在）。cli 输出管道接 `| tail` / `| grep` 会让 exit code 失真（tee 也会掩盖命令 not found），**必须检查日志内容本身**判断成败（grep 精确成功/失败关键词）。
 13. **判定 Kotlin 产物新旧**：`launch` 日志「uts插件[xxx]文件未发生变化，跳过编译」+ 缓存目录时间戳（cache/vapor/.../uni_modules/<id>）+ 基座 `dumpsys package io.dcloud.uniappx` 的 lastUpdateTime 三者结合判断；标准基座不随 UTS 插件更新（dex 随「同步手机端程序文件」下发），基座更新时间早于源码修改时间不代表插件没编译。
+
+## 2026-10-03 toast v0.7.1 M3 真机验证通过（position 丢失 + mask 双档 bottom 不一致修复）
+
+### 运行时坑
+14. **`uni.getSystemInfoSync().uniPlatform` 实际返回 `'app'`**（Mi 10 Pro / HBuilderX 5.26 实测，官方值域不含 `app-android`/`app-ios` 后缀）：按字符串匹配 `'app-android'` 判端会把 App 端误判为非自绘平台，position / image 被静默降级。平台归属编译期即定，**通道判定必须用条件编译**（`#ifdef APP-ANDROID || APP-IOS || WEB`），不依赖运行时 API。
+15. **UTS 平台类型必须显式 import，全限定名内联不识别**：参数类型写 `android.view.IBinder` 报「找不到名称 IBinder」（且 IBinder 实际在 `android.os` 包），正确写法 `import IBinder from 'android.os.IBinder'` + 类型标注 `token: IBinder`。
+16. **Kotlin smart cast 限制穿透 UTS**：可变全局变量（`View | null`）判空后直接传参报 `Smart cast to 'View' is impossible`；必须先赋局部变量再判空使用（`const oldMask = maskRoot; if (oldMask != null) { fn(oldMask) }`）。iOS Swift 侧同类问题靠显式 `!` 断言（见第 8 条）。
+17. **mask 蒙层与卡片定位基准差异**：mask=true 若用全屏 FrameLayout 内嵌卡片以 margin 定位，基准延伸到系统手势区，与 mask=false 的窗口 gravity 定位差 ≈ 系统手势区高度（~140px 实测差异明显）。**正确架构：蒙层与卡片拆成两个独立 TYPE_APPLICATION_PANEL 子窗口**——蒙层先挂（在下，MATCH_PARENT、不加 FLAG_NOT_TOUCHABLE 实现拦截），卡片后挂（在上，布局参数与 mask=false 完全一致 `buildCardParams()` 唯一来源，FLAG_NOT_TOUCHABLE 永远穿透）；同 type 同 token 后挂 z-order 更高，天然盖住蒙层。
+18. **WindowManager BOTTOM gravity 的 y 以「向内（上）为正」**（Gravity.apply：底边 = 容器底 − y）：传负值会把窗口推到超屏方向，被系统 **clamp 后静默贴底显示**（无任何报错的位置错误）；TOP gravity 则正值向下（top = 容器顶 + y）。取证方式：`adb shell dumpsys window windows` 找 TYPE_APPLICATION_PANEL 子窗口的 `Frames: ... frame=[l,t][r,b]`，对照 display 区间判断实际贴边（实测贴底时 frame.bottom = display 底 2296）。偏移基准 heightPixels（2200）与 display 高（2206）基本一致，可直接做百分比换算。

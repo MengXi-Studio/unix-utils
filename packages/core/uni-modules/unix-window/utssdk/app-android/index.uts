@@ -59,10 +59,10 @@ function positionGravity(position: string): Int {
 	return Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL
 }
 
-/** 屏高的 15%（top / bottom 档位的纵向偏移，与 Web 通道 15vh 一致） */
-function screenFifteenPercent(activity: Activity): Int {
+/** 屏高的 10%（top / bottom 档位的纵向偏移，与 Web 通道 10vh 一致） */
+function screenEdgeOffset(activity: Activity): Int {
 	const h = Number.from(activity.getResources().getDisplayMetrics().heightPixels)
-	return (h * 0.15).toInt()
+	return (h * 0.1).toInt()
 }
 
 /** dp → px（Int，用于 padding / margin / maxWidth 等整型参数） */
@@ -168,7 +168,7 @@ function scheduleHide(duration: number): void {
 
 /**
  * 构建卡片窗口的布局参数（位置唯一来源，mask 两档共用，保证语义一致）
- * - gravity + y：top 距顶 15%（y 向下偏移）、bottom 距底 15%（负 y 向上抬）、center 居中
+ * - gravity + y：top 距顶 10%（y 向下偏移）、bottom 距底 10%、center 居中
  * - 触摸穿透：卡片永远不吃触摸（mask = true 时由蒙层窗口负责拦截）
  */
 function buildCardParams(activity: Activity, position: string, token: IBinder): WindowManager.LayoutParams {
@@ -182,12 +182,15 @@ function buildCardParams(activity: Activity, position: string, token: IBinder): 
 	params.width = WindowManager.LayoutParams.WRAP_CONTENT
 	params.height = WindowManager.LayoutParams.WRAP_CONTENT
 	params.gravity = positionGravity(position)
-	// 纵向偏移：top 向下 15%；bottom 用负值上抬 15%（BOTTOM gravity 下 y 正方向向下）
+	// y 偏移方向随 gravity 变化（Gravity.apply）：
+	// TOP gravity：top = 容器顶 + y，正值向下；BOTTOM gravity：bottom = 容器底 - y，正值向上（向内）
+	// 实测（Mi 10 Pro dumpsys 取证）：bottom 传负值会把底边推到超屏方向，被系统 clamp 后贴底显示
 	if (position == 'top') {
-		params.y = screenFifteenPercent(activity)
+		params.y = screenEdgeOffset(activity)
 	}
 	if (position == 'bottom') {
-		params.y = -screenFifteenPercent(activity)
+		// 正值 → 卡片底边距显示区底 10% 屏高，与 Web bottom:10vh / iOS 底边锚定语义一致
+		params.y = screenEdgeOffset(activity)
 	}
 	params.token = token
 	return params

@@ -72,13 +72,13 @@ function buildLabel(winW: number, icon: string, title: string): UILabel {
 /** 计算标签纵向位置（y 坐标，winH 为窗口高度） */
 function labelY(winH: number, h: number, position: string): number {
 	if (position == 'top') {
-		return winH * 0.15
+		return winH * 0.1
 	}
 	if (position == 'center') {
 		return winH / 2.0 - h / 2.0
 	}
-	// bottom：距底 15%（与 Web 通道 15vh 一致）
-	return winH * 0.85 - h
+	// bottom：距底 10%（与 Web 通道 10vh 一致）
+	return winH * 0.9 - h
 }
 
 /** 复用模式下更新标签文案 */

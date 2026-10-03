@@ -311,16 +311,16 @@ callback 层：success / fail / complete 回调透传，错误结构化
 | 风险                               | 说明                                             | 缓解               |
 | ---------------------------------- | ------------------------------------------------ | ------------------ |
 | iOS 侧 Swift 编译门未过            | v0.7 仅完成 UTS→Swift 生成门（appResource 产物审计通过），Xcode 完整编译与真机验证因本机无 Xcode 未执行；NSNumber/CGFloat 桥接信任 DCloud 生成器 | 持有 Mac + Xcode 后补跑；Spike 同构代码曾通过 Swift 生成门，风险可控 |
-| Android bottom 位移符号待真机复核 | 无蒙层时 bottom 通过 `params.y = -15%` 下移（BOTTOM gravity y 正方向向下），真机若反号需调整符号 | M3 真机实测矩阵覆盖 |
+| Android bottom y 方向语义 ✅ 已实测（M3） | BOTTOM gravity 的 y 以「向内（上）为正」（Gravity.apply：底边 = 容器底 − y）；实测传负值会把底边推到超屏方向、被系统 clamp 后**贴底显示**（dumpsys 取证 frame 底边 = display 底，无报错的静默位置错误）。已修正为正值：top 顶边距显示区顶 10%、bottom 底边距显示区底 10%（与 Web 10vh / iOS 底边锚定语义一致，观感调优 v0.7.2）；mask 两档统一双窗口架构（`buildCardParams()` 唯一来源），日志取证 y=220 两档一致 | M3 真机实测通过 |
 | uts-proxy 类型转发限制             | 插件 API 不支持跨边界 type 导出，options 对象签名触发编译 warning | 插件 API 全部采用原始类型参数签名（已落实） |
 | 插件分发依赖复制步骤               | UTS 插件必须位于工程 `uni_modules/`，node_modules 不被扫描 | npm 包附带 `uni-modules/` 目录 + README 一行 cp 命令；漏复制时 App 端编译期即报错（可发现性好） |
 | 自绘通道残余遮挡（App 端）         | 窗口级直挂盖过页面树全部内容（含原生 tabbar 之上），但 `SurfaceView` 类独立图层（video 原生层、地图）与系统 UI（状态栏 / 导航栏 / 系统弹窗）仍在之上 | 已知约束写入文档；普通业务场景不受影响 |
 | 直挂窗口与系统弹窗层级关系         | TYPE_APPLICATION_PANEL 子窗口位于 Activity 之上，但系统级弹窗（权限对话框、系统 Toast）层级更高；与 uni.showModal 原生 Dialog 的相对层级待实测 | M3 实测记录，文档标注 |
-| mask=true 蒙层拦截语义             | 蒙层拦截触摸但不消费返回键；Android 返回键仍作用于业务页面栈 | 语义写入文档；与 dialogPage 方案（返回键可被消费）存在差异，实测确认 |
+| mask=true 蒙层拦截语义 ✅ 触摸拦截已实测（M3） | 蒙层拦截触摸但不消费返回键；Android 返回键仍作用于业务页面栈——Mi 10 Pro 实测蒙层期间页面触摸被拦截生效（独立蒙层窗口 FLAG_NOT_FOCUSABLE\|FLAG_NOT_TOUCH_MODAL，不加 NOT_TOUCHABLE）；返回键语义未专门触发，待补 | 语义写入文档；与 dialogPage 方案（返回键可被消费）存在差异 |
 | Android / iOS 双端一致性           | 两端窗口机制（WindowManager vs UIWindow）、动画、蒙层实现为两份代码，视觉细节可能漂移 | 共享参数语义 + M3 双端实测矩阵对齐 |
 | Android bottom 系统 toast 时长粒度 | 仅影响原生 fallback 通道：系统 Toast 仅短/长两档，自定义 duration 可能失效 | 实测记录，文档标注 |
 | 各端 icon=fail 实际渲染            | 官方仅说「生效范围」，未说其余端渲染结果（仅影响原生通道） | 实测矩阵补全       |
-| 连续调用覆盖行为（原生通道）       | 各端可能排队 / 覆盖 / 叠加不一致                 | 实测后统一策略     |
+| 连续调用覆盖行为（原生通道）       | 各端可能排队 / 覆盖 / 叠加不一致——App 直挂通道已实测（M3）：同 mask 同 position 复用更新文案，mask / position 变化整体重建，语义「后者替换前者」；微信 / 鸿蒙原生通道仍待实测 | App 端实测通过；原生通道实测后确认 |
 | HBuilderX 版本基线                 | 小程序端需 ≥4.41；UTS 插件需 ≥3.9（uts-proxy）   | 见 Q9              |
 
 ---
@@ -415,3 +415,5 @@ callback 层：success / fail / complete 回调透传，错误结构化
 | v0.6.1  | 2026-10-03 | 目录结构对齐 unix-router 规范：enums / constants / types / config / utils 职责目录 + `index.uts` 桶，通道实现归拢 `channels/`；`DEFAULT_DIALOG_PATH` 同步迁移；三端编译回归通过（web / app-android / mp-weixin），过程中修复 `utils/normalize.uts` 漏 import `getPlatform` |
 | v0.6.2  | 2026-10-03 | App 接入简化：实测 `pages.json` 可直接注册 `node_modules` 包内承载页路径（app-android 产物含承载页字节码、mp-weixin 页面表正常、web 编译通过），接入从三步（复制 + 注册 + configureToast）降至一步（注册）；playground 删除副本页并移除 `configureToast` 调用，默认路径 `DEFAULT_DIALOG_PATH` 生效；README「App 端接入」、3.6 注释、3.8 风险表同步 |
 | v0.7    | 2026-10-03 | **App 通道切换 UTS 直挂系统窗口（Q13 演进落定）**：Spike 于 Mi 10 Pro 真机验证通过后全面重构——core 包附带 `uni-modules/unix-window` UTS 插件（Android WindowManager TYPE_APPLICATION_PANEL + Activity token / iOS UIWindow getKeyWindow），免注册、穿透 / 蒙层 / 动画 / 计时全自管；`channels/app/self-draw.uts` 改为插件调用 + uni.showToast 双重降级；dialogPage 承载页方案退役（删除 dialog-page.uvue、pages.json 注册、DEFAULT_DIALOG_PATH / DIALOG_CLOSE_DELAY / 事件常量、ToastDefaults.dialogPath）；插件 API 采用原始类型参数签名（uts-proxy 不转发 type 导出）；App 端接入收敛为「复制 uni-modules/unix-window 到工程 uni_modules/」一步；image 参数在 App 端降级 icon 'none' + fail 回调。编译验证：web / mp-weixin 回归通过、app-ios Swift 生成门通过（Xcode 完整编译待补）、app-android UTS→Kotlin 生成门通过 |
+| v0.7.1  | 2026-10-03 | **M3 Android 真机验证通过（Mi 10 Pro，HBuilderX 5.26）**：①修复 position 丢失——实测 `uni.getSystemInfoSync().uniPlatform` 返回 `'app'`（不含 android/ios 后缀），`isSelfDrawPlatform` 由运行时字符串匹配改为编译期条件编译判定；②修复 mask 两档 bottom 位置不一致——Android 插件重构为**双独立子窗口架构**（蒙层窗口先挂拦截触摸、卡片窗口后挂与 mask=false 共用 `buildCardParams()`，位置语义单一来源），日志取证两档参数一致；③连续调用复用/重建（lastMask+lastPosition）、蒙层触摸拦截、hideToast 提前隐藏均实测通过；过程坑：平台类型须显式 `import IBinder from 'android.os.IBinder'`（全限定名内联不识别）、可变全局变量判空后须先赋局部变量再使用（Kotlin smart cast 限制） |
+| v0.7.2  | 2026-10-03 | **bottom 位置语义修复 + 纵向偏移调优**：①`dumpsys window` 实证 BOTTOM gravity 的 y「向内为正」，原 `y = -15%` 被 clamp 后实际贴底显示（预期 15% 的静默位置错误），修正为 `y = +10%`；②top / bottom 纵向偏移按观感统一由 15% 调整为 **10%**（Android `screenEdgeOffset` / iOS `0.1 & 0.9` / Web `10vh`，三端同步）；位置语义定稿：top 顶边距显示区顶 10%、bottom **底边**距显示区底 10%（等效 Web `bottom: 10vh`）、center 居中 |

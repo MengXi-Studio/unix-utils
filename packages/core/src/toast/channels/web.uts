@@ -24,9 +24,9 @@ const FADE_MS = 200
 /** 注入一次的全局样式 */
 const CSS_TEXT = `
 .unix-toast-root{position:fixed;left:0;top:0;right:0;bottom:0;display:flex;justify-content:center;pointer-events:none;z-index:9999}
-.unix-toast-pos-top{align-items:flex-start;padding-top:15vh}
+.unix-toast-pos-top{align-items:flex-start;padding-top:10vh}
 .unix-toast-pos-center{align-items:center}
-.unix-toast-pos-bottom{align-items:flex-end;padding-bottom:15vh}
+.unix-toast-pos-bottom{align-items:flex-end;padding-bottom:10vh}
 .unix-toast-mask{pointer-events:auto;background:rgba(0,0,0,0.5)}
 .unix-toast-card{min-width:120px;max-width:280px;box-sizing:border-box;padding:16px;border-radius:8px;background:rgba(0,0,0,0.75);display:flex;flex-direction:column;align-items:center;opacity:0;transition:opacity 0.2s}
 .unix-toast-show{opacity:1}
