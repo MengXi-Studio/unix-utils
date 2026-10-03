@@ -1,0 +1,104 @@
+/**
+ * App 自绘通道状态机（App-Android / App-iOS）
+ *
+ * 实现：
+ * - 以 uni.openDialogPage 打开承载页 dialog-page.uvue 作为自绘容器
+ * - 单实例复用：连续调用仅更新内容，不重复打开
+ * - 精确计时：duration 由 setTimeout 控制，结束后通知承载页隐藏并关闭承载页
+ * - 与承载页通信：通过 uni.$emit / uni.$on 全局事件
+ *
+ * 注意：承载页路径需业务侧在 pages.json 中注册；
+ * 默认路径为 DEFAULT_DIALOG_PATH，可通过 configureToast({ dialogPath }) 覆盖。
+ */
+import type { NormalizedOptions } from '../../types'
+import { getToastDefaults } from '../../config'
+import { DEFAULT_DIALOG_PATH, EVENT_TOAST_UPDATE, EVENT_TOAST_HIDE, DIALOG_CLOSE_DELAY } from '../../constants'
+
+/** 承载页是否已打开 */
+let dialogOpened: boolean = false
+/** 隐藏计时器 */
+let hideTimer: number | null = null
+
+/** 解析承载页路径：优先使用 configureToast 配置，否则使用默认 */
+function resolveDialogPath(): string {
+	const defaults = getToastDefaults()
+	if (defaults.dialogPath != null && defaults.dialogPath.length > 0) {
+		return defaults.dialogPath
+	}
+	return DEFAULT_DIALOG_PATH
+}
+
+/** 向承载页发送更新内容事件 */
+function emitUpdate(options: NormalizedOptions): void {
+	uni.$emit(EVENT_TOAST_UPDATE, {
+		title: options.title,
+		icon: options.icon,
+		image: options.image,
+		mask: options.mask,
+		duration: options.duration,
+		position: options.position
+	})
+}
+
+/** 向承载页发送隐藏事件 */
+function emitHide(): void {
+	uni.$emit(EVENT_TOAST_HIDE)
+}
+
+/** 启动隐藏计时器 */
+function startTimer(duration: number): void {
+	if (hideTimer != null) {
+		clearTimeout(hideTimer)
+	}
+	hideTimer = setTimeout(() => {
+		hideTimer = null
+		emitHide()
+		// 等待退出动画后关闭承载页，避免消费返回键 / 手势
+		setTimeout(() => {
+			if (dialogOpened) {
+				uni.closeDialogPage()
+				dialogOpened = false
+			}
+		}, DIALOG_CLOSE_DELAY)
+	}, duration)
+}
+
+/** 确保承载页已打开，已打开则直接更新内容 */
+function ensureDialogThenUpdate(options: NormalizedOptions): void {
+	if (dialogOpened) {
+		emitUpdate(options)
+		return
+	}
+	uni.openDialogPage({
+		url: resolveDialogPath(),
+		success: () => {
+			dialogOpened = true
+			emitUpdate(options)
+		},
+		fail: () => {
+			dialogOpened = false
+		}
+	})
+}
+
+/**
+ * 自绘通道展示 toast
+ * @param options 归一化后的选项
+ */
+export function showSelfDraw(options: NormalizedOptions): void {
+	ensureDialogThenUpdate(options)
+	startTimer(options.duration)
+}
+
+/** 自绘通道隐藏 toast */
+export function hideSelfDraw(): void {
+	if (hideTimer != null) {
+		clearTimeout(hideTimer)
+		hideTimer = null
+	}
+	emitHide()
+	if (dialogOpened) {
+		uni.closeDialogPage()
+		dialogOpened = false
+	}
+}

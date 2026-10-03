@@ -1,0 +1,172 @@
+<template>
+	<view class="toast-root" :class="{ 'toast-mask': mask }">
+		<view class="toast-container" :class="positionClass">
+			<view class="toast-card" :class="{ 'toast-visible': visible }">
+				<image v-if="image" class="toast-image" :src="image" mode="aspectFit" />
+				<text v-else-if="icon !== 'none'" class="toast-icon">{{ iconEmoji }}</text>
+				<text class="toast-title">{{ title }}</text>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script setup lang="uts">
+import { ref, computed } from 'vue'
+
+/** 提示文本 */
+const title = ref<string>('')
+/** 图标标识 */
+const icon = ref<string>('success')
+/** 自定义图标路径 */
+const image = ref<string>('')
+/** 是否显示蒙层 */
+const mask = ref<boolean>(false)
+/** 展示时长（毫秒） */
+const duration = ref<number>(1500)
+/** 位置 */
+const position = ref<string>('bottom')
+/** 是否可见 */
+const visible = ref<boolean>(false)
+
+/** 位置对应的容器样式类 */
+const positionClass = computed<string>(() => {
+	if (position.value === 'top') return 'pos-top'
+	if (position.value === 'center') return 'pos-center'
+	return 'pos-bottom'
+})
+
+/** 图标对应的 emoji 文本 */
+const iconEmoji = computed<string>(() => {
+	switch (icon.value) {
+		case 'success':
+			return '✓'
+		case 'error':
+		case 'fail':
+			return '✕'
+		case 'exception':
+		case 'warning':
+			return '!'
+		case 'loading':
+			return '◌'
+		default:
+			return ''
+	}
+})
+
+/**
+ * 展示 toast
+ * @param data 内容
+ */
+function show(data: UTSJSONObject): void {
+	const t = data['title']
+	title.value = t != null ? (t as string) : ''
+	const ic = data['icon']
+	icon.value = ic != null ? (ic as string) : 'success'
+	const im = data['image']
+	image.value = im != null ? (im as string) : ''
+	const m = data['mask']
+	mask.value = m != null ? (m as boolean) : false
+	const d = data['duration']
+	duration.value = d != null ? (d as number) : 1500
+	const p = data['position']
+	position.value = p != null ? (p as string) : 'bottom'
+	visible.value = true
+}
+
+/** 隐藏 toast */
+function hide(): void {
+	visible.value = false
+}
+
+// #ifdef APP
+uni.$on('unix-toast:update', (data: UTSJSONObject) => {
+	show(data)
+})
+uni.$on('unix-toast:hide', () => {
+	hide()
+})
+// #endif
+
+// #ifdef APP-ANDROID
+onBackPress(() => {
+	// 不消费返回键，透传给底层页面
+	return false
+})
+// #endif
+</script>
+
+<style>
+.toast-root {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: transparent;
+	pointer-events: none;
+}
+
+.toast-mask {
+	background-color: rgba(0, 0, 0, 0.5);
+	pointer-events: auto;
+}
+
+.toast-container {
+	position: absolute;
+	left: 0;
+	right: 0;
+	display: flex;
+	justify-content: center;
+	padding: 20px;
+}
+
+.pos-top {
+	top: 15%;
+}
+
+.pos-center {
+	top: 50%;
+	transform: translateY(-50%);
+}
+
+.pos-bottom {
+	bottom: 15%;
+}
+
+.toast-card {
+	min-width: 120px;
+	max-width: 280px;
+	background-color: rgba(0, 0, 0, 0.75);
+	border-radius: 8px;
+	padding: 16px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	opacity: 0;
+	transition: opacity 0.2s;
+}
+
+.toast-visible {
+	opacity: 1;
+}
+
+.toast-image {
+	width: 40px;
+	height: 40px;
+	margin-bottom: 8px;
+}
+
+.toast-icon {
+	color: #ffffff;
+	font-size: 40px;
+	margin-bottom: 8px;
+	text-align: center;
+}
+
+.toast-title {
+	color: #ffffff;
+	font-size: 14px;
+	text-align: center;
+	max-width: 240px;
+}
+</style>

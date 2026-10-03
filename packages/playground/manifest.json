@@ -1,0 +1,19 @@
+{
+    "name" : "unix-utils-playground",
+    "appid" : "__UNI__B6A50A8",
+    "description" : "@meng-xi/unix-utils 示例项目",
+    "versionName" : "0.1.0",
+    "versionCode" : "001",
+    "uni-app-x" : {
+        "styleIsolationVersion" : "2",
+        "vapor" : true,
+        "vapor-render-target" : "bytecode"
+    },
+    "vueVersion" : "3",
+    "uniStatistics" : {
+        "enable" : false
+    },
+    "mp-weixin" : {
+        "appid" : "wx0000000000000000"
+    }
+}

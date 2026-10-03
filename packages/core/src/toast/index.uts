@@ -1,0 +1,28 @@
+/**
+ * toast 模块入口
+ *
+ * 双轨 API：
+ * - 回调式（主）：showToast / hideToast
+ * - Promise 式（辅）：showToastAsync
+ * - 语义化快捷：showToastSuccess / showToastError / showToastInfo
+ * - 全局配置：configureToast
+ */
+export { showToast, hideToast, showToastAsync } from './show-toast'
+export { configureToast } from './config'
+export { showToastSuccess, showToastError, showToastInfo } from './shortcut'
+
+/* 类型 */
+export type {
+	ToastOptions,
+	ToastResult,
+	ToastFail,
+	NormalizedOptions,
+	ToastDefaults,
+	NormalizeResult
+} from './types'
+
+/* 枚举 */
+export { ToastIcon, ToastPosition, ToastErrorCode } from './enums'
+
+/* 常量 */
+export { DEFAULT_DURATION, DEFAULT_ICON, DEFAULT_MASK } from './constants'

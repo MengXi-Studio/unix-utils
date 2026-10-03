@@ -1,0 +1,18 @@
+/**
+ * toast 平台工具：端标识与通道判定
+ */
+
+/** 获取当前端标识（uniPlatform：'app-android' / 'app-ios' / 'web' / 'mp-weixin' / ...） */
+export function getPlatform(): string {
+	try {
+		const info = uni.getSystemInfoSync()
+		return info.uniPlatform
+	} catch (e) {
+		return 'unknown'
+	}
+}
+
+/** 当前端是否为自绘通道（App-Android / App-iOS / Web，v0.6 Q15） */
+export function isSelfDrawPlatform(platform: string): boolean {
+	return platform === 'app-android' || platform === 'app-ios' || platform === 'web'
+}

@@ -1,0 +1,80 @@
+/**
+ * toast 类型定义
+ *
+ * 遵循 UTS 约束：type 定义对象类型、显式 null 替代 undefined、
+ * 不使用 interface 承载对象字面量、不使用 index signature。
+ */
+import { ToastIcon, ToastPosition, ToastErrorCode } from '../enums'
+
+/** showToast 成功回调结果（对齐原生） */
+export type ToastResult = {
+	errMsg: string
+}
+
+/** 失败结构：比原生 errCode 更结构化（对齐 unix-router 的 RouterError 思路） */
+export type ToastFail = {
+	/** 错误码 */
+	errCode: ToastErrorCode
+	/** 固定主题，便于业务过滤 */
+	errSubject: string
+	/** 错误描述 */
+	errMsg: string
+	/** 触发问题的参数名（如 'position' / 'image' / 'icon'），无则 null */
+	param: string | null
+	/** 当前端标识（'app-android' / 'web' / 'mp-weixin' / ...） */
+	platform: string
+}
+
+/** 选项：对齐 uni.showToast 全参数；可选项以 null 显式表达 */
+export type ToastOptions = {
+	/** 提示内容 */
+	title: string
+	/** 图标；null 表示使用全局默认（success） */
+	icon: ToastIcon | null
+	/** 自定义图标本地路径；null 表示不使用 */
+	image: string | null
+	/** 是否显示透明蒙层，防止触摸穿透 */
+	mask: boolean
+	/** 提示延迟时间（毫秒），不钳制，原样透传 */
+	duration: number
+	/** 位置；null 表示不启用 position 形态（居中普通 toast） */
+	position: ToastPosition | null
+	/** 成功回调 */
+	success: ((res: ToastResult) => void) | null
+	/** 失败回调（含降级通知） */
+	fail: ((err: ToastFail) => void) | null
+	/** 结束回调（成功或失败都执行） */
+	complete: ((res: any) => void) | null
+}
+
+/** 归一化后的内部选项（所有字段均有确定值） */
+export type NormalizedOptions = {
+	title: string
+	icon: ToastIcon
+	image: string | null
+	mask: boolean
+	duration: number
+	position: ToastPosition | null
+	success: ((res: ToastResult) => void) | null
+	fail: ((err: ToastFail) => void) | null
+	complete: ((res: any) => void) | null
+}
+
+/** 归一化结果：归一化后的选项 + 发生降级的参数名列表 */
+export type NormalizeResult = {
+	options: NormalizedOptions
+	/** 发生降级的参数名列表（如 ['position', 'icon']） */
+	degraded: string[]
+}
+
+/** 全局默认配置（configureToast 入参；字段为 null 表示沿用库内置默认） */
+export type ToastDefaults = {
+	/** 默认展示时长（毫秒） */
+	duration: number | null
+	/** 默认图标 */
+	icon: ToastIcon | null
+	/** 默认是否显示蒙层 */
+	mask: boolean | null
+	/** App 自绘通道承载页路径（需业务侧 pages.json 注册）；null 使用库内默认路径 */
+	dialogPath: string | null
+}

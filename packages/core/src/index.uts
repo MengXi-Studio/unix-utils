@@ -1,0 +1,33 @@
+/**
+ * @meng-xi/unix-utils 公共入口
+ *
+ * 为 uni-app x 提供便利工具（UTS 源分发）。
+ * 按平台编译：web / 小程序 → JS，Android → Kotlin，iOS → Swift。
+ *
+ * 当前模块：toast（showToast 全端兼容封装，分端混合实现）。
+ */
+export {
+	showToast,
+	hideToast,
+	showToastAsync,
+	configureToast,
+	showToastSuccess,
+	showToastError,
+	showToastInfo
+} from './toast'
+
+/* 枚举 */
+export { ToastIcon, ToastPosition, ToastErrorCode } from './toast/enums'
+
+/* 常量 */
+export { DEFAULT_DURATION, DEFAULT_ICON, DEFAULT_MASK } from './toast/constants'
+
+/* 核心类型 */
+export type {
+	ToastOptions,
+	ToastResult,
+	ToastFail,
+	NormalizedOptions,
+	ToastDefaults,
+	NormalizeResult
+} from './types'

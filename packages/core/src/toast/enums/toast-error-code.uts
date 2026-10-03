@@ -1,0 +1,11 @@
+/**
+ * toast 失败码枚举（对齐 unix-router 的 RouterErrorCode 风格）
+ */
+
+/** toast 失败码 */
+export enum ToastErrorCode {
+	/** 参数非法（如 image 传 gif 于原生通道 App 端） */
+	PARAM_INVALID = 1001,
+	/** 参数当前端不支持且已降级（info 级，不阻断展示） */
+	PLATFORM_UNSUPPORTED = 2001
+}

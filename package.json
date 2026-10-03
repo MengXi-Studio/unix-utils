@@ -1,0 +1,41 @@
+{
+	"name": "unix-utils",
+	"type": "module",
+	"version": "0.1.0",
+	"private": true,
+	"description": "为 uni-app x 提供便利工具的集合（UTS 源分发）",
+	"packageManager": "pnpm@10.31.0",
+	"workspaces": [
+		"packages/*"
+	],
+	"scripts": {
+		"sync:uni-modules": "node scripts/sync-uni-modules.mjs",
+		"sync:uni-modules:check": "node scripts/sync-uni-modules.mjs --check",
+		"release": "bumpp",
+		"typecheck": "tsc -p tsconfig.json --noEmit",
+		"lint": "eslint .",
+		"lint:fix": "pnpm lint --fix"
+	},
+	"devDependencies": {
+		"@eslint/js": "^9.38.0",
+		"bumpp": "^12.3.0",
+		"eslint": "^9.38.0",
+		"eslint-config-prettier": "^10.1.0",
+		"eslint-plugin-prettier": "^5.5.0",
+		"globals": "^16.2.0",
+		"prettier": "^3.8.1",
+		"typescript": "^5.9.3",
+		"typescript-eslint": "^8.56.0"
+	},
+	"author": {
+		"name": "PedroQue99",
+		"email": "ksmengfang@163.com"
+	},
+	"license": "MIT",
+	"homepage": "https://github.com/MengXi-Studio/unix-utils#readme",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/MengXi-Studio/unix-utils.git"
+	},
+	"bugs": "https://github.com/MengXi-Studio/unix-utils/issues"
+}

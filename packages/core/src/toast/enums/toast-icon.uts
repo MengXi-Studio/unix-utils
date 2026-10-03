@@ -1,0 +1,24 @@
+/**
+ * toast 图标枚举
+ *
+ * 对齐 uni.showToast 原生 6 值，并扩展 warning；
+ * 自绘通道真实渲染，原生通道按 3.4 矩阵降级。
+ */
+
+/** toast 图标 */
+export enum ToastIcon {
+	/** 成功 */
+	SUCCESS = 'success',
+	/** 错误 */
+	ERROR = 'error',
+	/** 失败（原生通道仅支付宝/抖音生效，多数端归一化为 error；自绘通道真实渲染） */
+	FAIL = 'fail',
+	/** 异常（原生通道仅支付宝生效，多数端归一化为 error；自绘通道真实渲染） */
+	EXCEPTION = 'exception',
+	/** 警告（扩展值：自绘通道真实渲染；原生通道降级为 none 并回调 PLATFORM_UNSUPPORTED） */
+	WARNING = 'warning',
+	/** 加载 */
+	LOADING = 'loading',
+	/** 不显示图标 */
+	NONE = 'none'
+}

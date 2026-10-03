@@ -1,0 +1,10 @@
+/**
+ * toast 键名常量（事件名、错误主题）
+ */
+
+/** 失败主题，固定值，用于 ToastFail.errSubject */
+export const TOAST_ERR_SUBJECT: string = 'unix-utils:toast'
+
+/** dialogPage 与库通信的事件名 */
+export const EVENT_TOAST_UPDATE: string = 'unix-toast:update'
+export const EVENT_TOAST_HIDE: string = 'unix-toast:hide'

@@ -1,0 +1,11 @@
+/**
+ * 全局类型再导出
+ */
+export type {
+	ToastOptions,
+	ToastResult,
+	ToastFail,
+	NormalizedOptions,
+	ToastDefaults,
+	NormalizeResult
+} from '../toast/types'

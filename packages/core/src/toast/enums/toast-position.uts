@@ -1,0 +1,13 @@
+/**
+ * toast 位置枚举
+ */
+
+/** toast 位置 */
+export enum ToastPosition {
+	/** 顶部 */
+	TOP = 'top',
+	/** 居中 */
+	CENTER = 'center',
+	/** 底部 */
+	BOTTOM = 'bottom'
+}

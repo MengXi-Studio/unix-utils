@@ -1,0 +1,28 @@
+{
+	"pages": [
+		{
+			"path": "pages/index/index",
+			"style": {
+				"navigationBarTitleText": "unix-utils"
+			}
+		},
+		{
+			"path": "pages/toast/dialog-page",
+			"style": {
+				"navigationStyle": "custom",
+				"backgroundColor": "transparent",
+				"backgroundColorTop": "transparent",
+				"backgroundColorBottom": "transparent",
+				"app-plus": {
+					"popGesture": "none"
+				}
+			}
+		}
+	],
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "unix-utils",
+		"navigationBarBackgroundColor": "#F8F8F8",
+		"backgroundColor": "#F8F8F8"
+	}
+}

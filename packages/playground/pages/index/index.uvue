@@ -1,0 +1,50 @@
+<template>
+	<view class="container">
+		<button @click="onSuccess">成功</button>
+		<button @click="onError">错误</button>
+		<button @click="onInfo">信息</button>
+		<button @click="onWarning">警告</button>
+	</view>
+</template>
+
+<script setup lang="uts">
+	import { showToast, showToastSuccess, showToastError, showToastInfo, configureToast, ToastIcon } from '@meng-xi/unix-utils'
+
+	onLoad(() => {
+		// #ifdef APP
+		configureToast({
+			dialogPagePath: 'pages/toast/dialog-page'
+		})
+		// #endif
+	})
+
+	function onSuccess(): void {
+		showToastSuccess('操作成功')
+	}
+
+	function onError(): void {
+		showToastError('操作失败')
+	}
+
+	function onInfo(): void {
+		showToastInfo('这是一条消息')
+	}
+
+	function onWarning(): void {
+		showToast({
+			title: '请注意',
+			icon: ToastIcon.WARNING,
+			mask: true,
+			duration: 2000
+		})
+	}
+</script>
+
+<style>
+	.container {
+		flex: 1;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+	}
+</style>
