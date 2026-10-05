@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| 状态 | 定稿 v0.7（v0.7：App 通道切换为 UTS 直挂系统窗口——core 包附带 `uni-modules/unix-window` UTS 插件（Android WindowManager / iOS UIWindow），免注册、触摸穿透 / 蒙层 / 动画 / 计时全自管，dialogPage 承载页方案退役；历史落定项不变：双轨 API + 快捷 API + icon 扩 warning + 原生降级策略 + duration 不钳制 + configureToast + Web 自绘 + renderer 不暴露 + npm/uni_modules 双轨） |
+| 状态 | 定稿 v0.8（v0.8：包形态改造为标准 uni_modules UTS 插件——`utssdk/` 官方目录结构、入口 `interface.uts` API 声明（const 模式）、`main: utssdk/index.uts`，实现插件市场 + npm 双轨分发；`uni-modules/unix-window` 独立插件退役，直挂实现内联为 `utssdk/app-android` / `utssdk/app-ios` 平台目录，Web DOM 自绘迁入 `utssdk/web`；v0.8.1 修复 ToastOptions 可选字段（uts-proxy 代理层对必填字段非空强转导致漏传 NPE）；历史落定项不变：双轨 API + 快捷 API + icon 扩 warning + 原生降级策略 + duration 不钳制 + configureToast + Web 自绘 + renderer 不暴露 + 双轨分发） |
 | 日期 | 2026-10-03 |
 | 工程惯例参照 | [unix-router](https://github.com/MengXi-Studio/unix-router)（UTS 源分发 / monorepo / 类型与错误码组织方式） |
 | 事实依据 | [uni-app x 官方 showToast 文档](https://doc.dcloud.net.cn/uni-app-x/api/toast.html)、hello uni-app x 示例源码（toast.uvue） |
@@ -227,53 +227,49 @@ configureToast(defaults: ToastDefaults): void
 ### 3.6 目录结构（对齐 unix-router 惯例：职责目录 + index.uts 桶文件）
 
 ```
-packages/core/
-├── package.json              # @meng-xi/unix-utils（已确认：单包工具集，toast 为子模块）
-├── src/
-│   ├── index.uts             # 统一入口
+packages/core/                     # = uni_modules/unix-utils 插件本体（v0.8）
+├── package.json                   # @meng-xi/unix-utils（main: utssdk/index.uts；含 uni_modules 插件清单字段）
+├── changelog.md                   # uni_modules 插件市场要求的更新日志
+├── utssdk/
+│   ├── interface.uts              # 对外 API 声明（官方必需）：API 函数类型别名 + ToastOptions（v0.8.1 起除 title 外全可选）+ 入口常量
+│   ├── index.uts                  # 插件入口：export const showToast = ...（const 模式，uts-proxy 要求）+ 平台分发
 │   ├── toast/
-│   │   ├── index.uts         # toast 模块桶：API / 类型 / 枚举 / 常量再导出
-│   │   ├── show-toast.uts    # 主流程：归一化 → 通道分发 → 回调（showToast / showToastAsync / hideToast）
-│   │   ├── shortcut.uts      # 语义化快捷 API（showToastSuccess / Error / Info）
-│   │   ├── enums/            # 枚举（一枚举一文件 + 桶）
-│   │   │   ├── toast-icon.uts      # ToastIcon（含扩展 WARNING）
+│   │   ├── show-toast.uts         # 主流程：归一化 → 通道分发 → 回调（showToastImpl / showToastAsyncImpl / hideToastImpl）
+│   │   ├── shortcut.uts           # 语义化快捷 API（showToastSuccessImpl / ErrorImpl / InfoImpl + quickShow）
+│   │   ├── enums/                 # 字面量联合类型 + 错误码（一枚举一文件 + 桶）
+│   │   │   ├── toast-icon.uts      # ToastIcon（含 warning / fail / exception）
 │   │   │   ├── toast-position.uts  # ToastPosition
-│   │   │   ├── toast-error-code.uts# ToastErrorCode
+│   │   │   ├── toast-error-code.uts# ToastErrorCode + ERR_PARAM_INVALID / ERR_PLATFORM_UNSUPPORTED
 │   │   │   └── index.uts
-│   │   ├── constants/        # 常量（按语义分文件 + 桶）
-│   │   │   ├── defaults.uts        # DEFAULT_DURATION / DEFAULT_ICON / DEFAULT_MASK
+│   │   ├── constants/             # 常量（按语义分文件 + 桶）
+│   │   │   ├── defaults.uts        # BUILTIN_DURATION / BUILTIN_ICON / BUILTIN_MASK（内部同语义常量，避免与入口重名）
 │   │   │   ├── limits.uts          # title 截断上限
 │   │   │   ├── keys.uts            # TOAST_ERR_SUBJECT
 │   │   │   └── index.uts
-│   │   ├── types/            # 类型（+ 桶）
-│   │   │   ├── toast.uts           # ToastOptions / ToastFail / ToastDefaults / ...
+│   │   ├── types/                 # 类型（+ 桶）
+│   │   │   ├── toast.uts           # NormalizedOptions / ToastFail / ToastDefaults / ...
 │   │   │   └── index.uts
-│   │   ├── config/           # 全局默认配置
-│   │   │   └── index.uts           # configureToast / getToastDefaults（模块级单例）
-│   │   ├── utils/            # 工具（+ 桶）
-│   │   │   ├── platform.uts        # getPlatform / isSelfDrawPlatform
+│   │   ├── config/                # 全局默认配置
+│   │   │   └── index.uts           # configureToastImpl / getToastDefaults（模块级单例）
+│   │   ├── utils/                 # 工具（+ 桶）
+│   │   │   ├── platform.uts        # getPlatform / isSelfDrawPlatform（编译期条件编译）
 │   │   │   ├── normalize.uts       # 参数归一化与降级（纯函数，可单测）
 │   │   │   └── index.uts
-│   │   └── channels/         # 通道实现（按端隔离）
+│   │   └── channels/              # 通道实现（按端隔离）
 │   │       ├── native.uts          # uni 原生通道封装（微信 / 鸿蒙 + App fallback）
 │   │       ├── web.uts             # #ifdef WEB 自绘通道（DOM 单例，v0.6 Q15）
-│   │       └── app/                # App 自绘通道（#ifdef APP-ANDROID / APP-IOS）
-│   │           └── self-draw.uts   # 直挂调用 + 双重降级（插件失败 → uni.showToast 原生通道）
-│   └── types/
-│       └── index.uts         # 全局类型再导出
-└── uni-modules/
-    └── unix-window/          # UTS 插件（v0.7 App 直挂通道实现，随 npm 包附带分发）
-        ├── package.json      # uni_modules 插件清单（id: unix-window）
-        └── utssdk/
-            ├── index.uts           # Web / 小程序兜底空实现（+日志）
-            ├── app-android/index.uts  # WindowManager 直挂（TYPE_APPLICATION_PANEL + Activity token）
-            └── app-ios/index.uts      # UIWindow 直挂（getKeyWindow + addSubview）
+│   │       └── app/
+│   │           ├── self-draw.uts   # 直挂调用 + 双重降级（插件失败 → uni.showToast 原生通道）
+│   │           ├── window-android.uts  # WindowManager 直挂（v0.8 由 unix-window 插件内联）
+│   │           └── window-ios.uts      # UIWindow 直挂（v0.8 由 unix-window 插件内联）
+│   ├── app-android/               # 官方平台目录（Android 侧编译配置）
+│   ├── app-ios/                   # 官方平台目录（iOS 侧编译配置）
+│   └── web/                       # 官方平台目录（Web 侧编译配置）
+└── docs/                          # 设计与接入文档
 ```
 
-> **`uni-modules/unix-window` 接入（v0.7）**：UTS 插件必须位于工程 `uni_modules/` 目录（官方规范不扫描 node_modules），故 npm 包附带 `uni-modules/` 目录，业务侧复制一行即可：
-> `cp -R node_modules/@meng-xi/unix-utils/uni-modules/unix-window uni_modules/`
-> 插件 API 采用**原始类型参数签名**（非 options 对象）：uts-proxy 不转发 type 导出，跨插件边界的对象类型签名会触发编译 warning 且运行时拿不到类型信息。`channels/app/self-draw.uts` 通过 `@/uni_modules/unix-window` 导入，插件挂窗失败时（activity / token 为 null、异常）经 fail 回调走 `uni.showToast` 原生降级并留痕日志。
-> v0.6.2 的 dialogPage 承载页方案（`dialog-page.uvue` + pages.json 注册 + `DEFAULT_DIALOG_PATH`）已随 v0.7 退役，相关接入说明见修订记录。
+> **v0.8 形态要点**：①整包为单一 uni_modules UTS 插件，业务侧 `import { showToast } from '@/uni_modules/unix-utils'`，插件市场导入或 npm 安装后同步至工程 `uni_modules/` 两种方式均可；②`uni-modules/unix-window` 独立插件退役，直挂实现（Android `WindowManager` / iOS `UIWindow`）以 `channels/app/window-*.uts` 形式内联（平台 API 以条件编译整体包裹，其他平台编译时裁剪），窗口挂载失败仍走 `uni.showToast` 原生降级并留痕；③入口采用 **const 模式**（`export const showToast = (options) => {...}`），实现层函数加 `Impl` 后缀、内部同语义常量加 `BUILTIN_/ERR_` 前缀——UTS 插件 native 编译时全部 `.uts` 合并同一 Kotlin package，任何同名 top-level 符号（含悬空调用解析出的孤儿符号）都会触发导出符号静默重整（`showToast` → `showToast__1`）导致业务 import 报 "not exported by uts-proxy"，且编译器不报错；④ToastOptions 除 `title` 外全部为可选字段——uts-proxy 对必填字段生成非空强转（`null as Boolean`），业务漏传即 NPE（v0.8.1 真机实测）。
+> v0.6.2 的 dialogPage 承载页方案与 v0.7 的 `uni-modules/unix-window` 复制接入均已退役，相关说明见修订记录。
 
 实现分层：
 
@@ -285,15 +281,16 @@ normalize 层：icon 归一化 / duration 钳制 / 平台不支持参数降级 +
       │
       ▼
 dispatch 层 = 按端分发到三通道（通道可替换）
-   ├─ App 直挂窗口通道（App-Android / App-iOS 默认，v0.7）
-   │    unix-window UTS 插件直挂系统窗口（Android WindowManager / iOS UIWindow）：
+   ├─ App 直挂窗口通道（App-Android / App-iOS 默认，v0.8 内联）
+   │    插件内 channels/app/window-android.uts / window-ios.uts 直挂系统窗口
+   │    （Android WindowManager / iOS UIWindow）：
    │    免注册、触摸穿透 / 蒙层 / 动画 / 精确计时 / hideToast 全自管；
-   │    #ifdef APP-ANDROID / APP-IOS 隔离；插件失败 → 原生通道双重降级
+   │    #ifdef APP-ANDROID / APP-IOS 隔离；挂窗失败 → 原生通道双重降级
    ├─ Web 自绘通道（Web 默认，v0.6 Q15）
    │    #ifdef WEB DOM 单例（body 挂载 + 注入样式 + class 过渡 + setTimeout）
    ├─ uni 原生通道（微信 / 鸿蒙默认；App 端 fallback）
    │    uni.showToast——它本身就是官方原生实现，统一入口
-   └─ UTS 扩展通道（后续演进）：unix-window 已落地窗口直挂，可继续扩展
+   └─ UTS 扩展通道（后续演进）：窗口直挂已内联落地，可继续扩展
       直调系统原生 API（如 Android 原生 Snackbar、iOS 触感反馈联动）
       │
       ▼
@@ -302,7 +299,7 @@ callback 层：success / fail / complete 回调透传，错误结构化
 
 ### 3.7 工程与验证
 
-- **分发**：npm + uni_modules 双轨（见 Q10，对齐 unix-router 的 sync-uni-modules 机制）；npm 包 `main: src/index.uts`；App 直挂所需的 UTS 插件以 `uni-modules/unix-window` 目录随包附带，业务侧复制到工程 `uni_modules/`（见 3.6 接入说明，App 端接入仅此一步）；
+- **分发**：npm + 插件市场双轨（v0.8 定型）——整包即标准 uni_modules UTS 插件：插件市场直接提交 `packages/core/`（zip 根目录 = 插件 id `unix-utils`）；npm 包 `main: utssdk/index.uts`，安装后同步至工程 `uni_modules/unix-utils/`；
 - **验证**：`packages/playground` 覆盖 6 种 icon × 5 端、position 三值、mask、image、hideToast、连续调用，以**运行日志**为 DoD 依据（对齐 core-protocol 的 DoD 检查清单）；
 - **连续调用语义**：统一为「后者替换前者」（与微信一致），待各端实测确认（见 3.8 风险）。
 
@@ -417,3 +414,5 @@ callback 层：success / fail / complete 回调透传，错误结构化
 | v0.7    | 2026-10-03 | **App 通道切换 UTS 直挂系统窗口（Q13 演进落定）**：Spike 于 Mi 10 Pro 真机验证通过后全面重构——core 包附带 `uni-modules/unix-window` UTS 插件（Android WindowManager TYPE_APPLICATION_PANEL + Activity token / iOS UIWindow getKeyWindow），免注册、穿透 / 蒙层 / 动画 / 计时全自管；`channels/app/self-draw.uts` 改为插件调用 + uni.showToast 双重降级；dialogPage 承载页方案退役（删除 dialog-page.uvue、pages.json 注册、DEFAULT_DIALOG_PATH / DIALOG_CLOSE_DELAY / 事件常量、ToastDefaults.dialogPath）；插件 API 采用原始类型参数签名（uts-proxy 不转发 type 导出）；App 端接入收敛为「复制 uni-modules/unix-window 到工程 uni_modules/」一步；image 参数在 App 端降级 icon 'none' + fail 回调。编译验证：web / mp-weixin 回归通过、app-ios Swift 生成门通过（Xcode 完整编译待补）、app-android UTS→Kotlin 生成门通过 |
 | v0.7.1  | 2026-10-03 | **M3 Android 真机验证通过（Mi 10 Pro，HBuilderX 5.26）**：①修复 position 丢失——实测 `uni.getSystemInfoSync().uniPlatform` 返回 `'app'`（不含 android/ios 后缀），`isSelfDrawPlatform` 由运行时字符串匹配改为编译期条件编译判定；②修复 mask 两档 bottom 位置不一致——Android 插件重构为**双独立子窗口架构**（蒙层窗口先挂拦截触摸、卡片窗口后挂与 mask=false 共用 `buildCardParams()`，位置语义单一来源），日志取证两档参数一致；③连续调用复用/重建（lastMask+lastPosition）、蒙层触摸拦截、hideToast 提前隐藏均实测通过；过程坑：平台类型须显式 `import IBinder from 'android.os.IBinder'`（全限定名内联不识别）、可变全局变量判空后须先赋局部变量再使用（Kotlin smart cast 限制） |
 | v0.7.2  | 2026-10-03 | **bottom 位置语义修复 + 纵向偏移调优**：①`dumpsys window` 实证 BOTTOM gravity 的 y「向内为正」，原 `y = -15%` 被 clamp 后实际贴底显示（预期 15% 的静默位置错误），修正为 `y = +10%`；②top / bottom 纵向偏移按观感统一由 15% 调整为 **10%**（Android `screenEdgeOffset` / iOS `0.1 & 0.9` / Web `10vh`，三端同步）；位置语义定稿：top 顶边距显示区顶 10%、bottom **底边**距显示区底 10%（等效 Web `bottom: 10vh`）、center 居中 |
+| v0.8    | 2026-10-04 | **包形态改造为标准 uni_modules UTS 插件（B 方案定案）**：`src/` → `utssdk/`，新增官方必需的 `interface.uts` 对外 API 声明，入口改 **const 模式**（`export const showToast = ...`）；`uni-modules/unix-window` 独立插件退役，直挂实现内联为 `utssdk/toast/channels/app/window-android.uts` / `window-ios.uts`（平台 API 条件编译整体包裹）；Web DOM 自绘迁入 `utssdk/web` 官方平台目录；业务 import 变更为 `@/uni_modules/unix-utils`。符号重整攻坚：插件 native 编译时全部 `.uts` 合并同一 Kotlin package，同名 top-level 符号（实现函数与入口同名、悬空调用孤儿符号、跨文件重名映射函数）触发导出符号静默重整（`showToast` → `showToast__1`）且无编译错误——修复为：实现函数全加 `Impl` 后缀、内部同语义常量改名 `BUILTIN_*/ERR_*`、删除残留桶文件、通道映射函数按通道区分命名。四门编译通过（web / mp-weixin / app-android 真 Kotlin / app-ios Swift 生成） |
+| v0.8.1  | 2026-10-04 | **ToastOptions 可选字段修复（M5 真机实测 NPE）**：uts-proxy 代理层对必填字段生成非空强转（`null as Boolean`），业务漏传任意必填字段即 `NullPointerException`（`{ title, position }` 两字段调用崩溃于 `createUTSToastOptions`）；修复为除 `title` 外全部可选字段，代理层对可选字段生成 null-safe 编码（生成 Kotlin 取证 `as Boolean?`），实现层 normalize 本就全字段判空兜底，行为无变化。另消除 `iconToString` / `positionToString` 在 native 与自绘通道的跨文件重名（改为 `iconToNativeString` / `iconToSelfDrawString` 等按通道命名）；类型别名双声明产生的 `ToastIcon__1` 等 typealias 重整确认为自洽无害（纯 String/Number 别名，uts-proxy 不转发 type 导出，业务不可见） |

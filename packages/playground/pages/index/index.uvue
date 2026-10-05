@@ -11,7 +11,7 @@
 </template>
 
 <script setup lang="uts">
-	import { showToast, showToastSuccess, showToastError, showToastInfo, hideToast, ToastIcon, ToastPosition } from '@meng-xi/unix-utils'
+	import { showToast, showToastSuccess, showToastError, showToastInfo, hideToast } from '@/uni_modules/unix-utils'
 
 	function onSuccess(): void {
 		showToastSuccess('操作成功')
@@ -28,7 +28,7 @@
 	function onWarning(): void {
 		showToast({
 			title: '请注意',
-			icon: ToastIcon.WARNING,
+			icon: 'warning',
 			mask: true,
 			duration: 2000
 		})
@@ -37,7 +37,7 @@
 	function onTop(): void {
 		showToast({
 			title: '顶部提示',
-			position: ToastPosition.TOP
+			position: 'top'
 		})
 	}
 

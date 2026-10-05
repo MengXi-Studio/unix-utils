@@ -1,0 +1,24 @@
+{
+  "version": "1",
+  "env": {
+    "vapor": true,
+    "compilerVersion": "5.26"
+  },
+  "files": {
+    "utssdk/index.uts": {
+      "md5": "c26dd796236856c53b6803be16f156d9"
+    },
+    "utssdk/interface.uts": {
+      "md5": "22200264aefe08da4d26ff39fb0e205f"
+    },
+    "README.md": {
+      "md5": "56a7e4db26e55809b18f72b9595a5207"
+    },
+    "license.md": {
+      "md5": "e149f77e322135b30fb623e098fbd0a2"
+    },
+    "package.json": {
+      "md5": "e7bd0f5390ed4f630fff97f007644da0"
+    }
+  }
+}

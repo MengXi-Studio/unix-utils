@@ -43,10 +43,6 @@ importers:
         version: 3.5.43(typescript@5.9.3)
 
   packages/playground:
-    dependencies:
-      '@meng-xi/unix-utils':
-        specifier: workspace:*
-        version: link:../core
     devDependencies:
       '@dcloudio/vite-plugin-uni':
         specifier: 3.0.0-alpha-5020520260821001

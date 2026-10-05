@@ -31,3 +31,15 @@
 16. **Kotlin smart cast 限制穿透 UTS**：可变全局变量（`View | null`）判空后直接传参报 `Smart cast to 'View' is impossible`；必须先赋局部变量再判空使用（`const oldMask = maskRoot; if (oldMask != null) { fn(oldMask) }`）。iOS Swift 侧同类问题靠显式 `!` 断言（见第 8 条）。
 17. **mask 蒙层与卡片定位基准差异**：mask=true 若用全屏 FrameLayout 内嵌卡片以 margin 定位，基准延伸到系统手势区，与 mask=false 的窗口 gravity 定位差 ≈ 系统手势区高度（~140px 实测差异明显）。**正确架构：蒙层与卡片拆成两个独立 TYPE_APPLICATION_PANEL 子窗口**——蒙层先挂（在下，MATCH_PARENT、不加 FLAG_NOT_TOUCHABLE 实现拦截），卡片后挂（在上，布局参数与 mask=false 完全一致 `buildCardParams()` 唯一来源，FLAG_NOT_TOUCHABLE 永远穿透）；同 type 同 token 后挂 z-order 更高，天然盖住蒙层。
 18. **WindowManager BOTTOM gravity 的 y 以「向内（上）为正」**（Gravity.apply：底边 = 容器底 − y）：传负值会把窗口推到超屏方向，被系统 **clamp 后静默贴底显示**（无任何报错的位置错误）；TOP gravity 则正值向下（top = 容器顶 + y）。取证方式：`adb shell dumpsys window windows` 找 TYPE_APPLICATION_PANEL 子窗口的 `Frames: ... frame=[l,t][r,b]`，对照 display 区间判断实际贴边（实测贴底时 frame.bottom = display 底 2296）。偏移基准 heightPixels（2200）与 display 高（2206）基本一致，可直接做百分比换算。
+
+## 2026-10-04 toast v0.8 uni_modules 单插件改造（四门编译 + 真机回归通过）
+
+### UTS 插件 native 编译坑（符号重整真根因，b5a 攻坚定论）
+19. **插件全部 .uts 合并同一 Kotlin package，同名 top-level 符号一律静默重整**：任何形式的同名冲突（实现函数与入口 API 同名、已删文件的悬空调用解析出的孤儿符号、跨文件重名的工具函数、内部常量与入口常量同名）都会让编译器对**导出符号**加 `__1` 后缀（`showToast` → `showToast__1`），业务侧 import 报 `"xxx" is not exported by ?uts-proxy`，且**编译全程无 error**。修复范式：实现函数全加 `Impl` 后缀、内部同语义常量改名 `BUILTIN_*/ERR_*` 前缀、删除残留桶文件、跨文件同名工具函数按通道命名（`iconToNativeString` / `iconToSelfDrawString`）。取证方式：grep 生成 `index.kt` 中的 `__1` 残留。
+20. **同名 typealias 的重整是自洽无害的**：入口 `interface.uts` 与内部 `enums/` 双声明同一字面量联合类型（如 `ToastIcon`），产物出现 `ToastIcon__1` 等纯别名重整——引用自洽、uts-proxy 不转发 type 导出业务不可见、无运行时影响，不必消除（与第 19 条的「导出符号重整」严格区分）。
+21. **uts-proxy 代理层对必填字段生成非空强转**：`ToastOptions` 若声明 `mask: boolean`（必填），代理函数生成 `options.get("mask") as Boolean`（非空 cast），业务漏传即 NPE（`null cannot be cast to non-null type kotlin.Boolean`，崩溃点 `createUTSToastOptions`）；可选字段（`?`）才生成 `as Boolean?` null-safe 编码。**对外 API 的 options 类型除真正必填项外一律声明可选**，实现层判空兜底。取证：grep 生成 index.kt 的 create 函数。
+
+### 部署与工具链坑
+22. **HBuilderX GUI「运行」不保证推送新资源**：M4/M5 两次真机回归中手机 www 时间戳停在旧版本（GUI 静默回退/未制作基座），改用 CLI 直部署稳定复现：`cli launch app-android --project <绝对路径> --deviceId <id> --cleanCache true`。**新包判定标准：console 日志的 at 路径**（新结构 = `uni_modules/unix-utils/utssdk/toast/channels/app/window-android.uts`，旧包显示 `uni_modules/unix-window/...`）。
+23. **`rm -rf unpackage/dist` 偶发 "Directory not empty"**：HBuilderX/编辑器进程并发写入所致，直接重跑同一命令即可；发布前全清 `unpackage/cache` + `unpackage/dist` 防缓存污染。
+24. **Agent 沙箱会干扰 adb exec（间歇 `Input/output error: adb`，exit 127）**：二进制本身完好（file 校验正常），疑似沙箱对 USB 设备访问的拦截；对 adb 类命令使用非沙箱模式（dangerouslyDisableSandbox）后稳定。同命令时好时坏时优先怀疑执行环境而非工具本身。

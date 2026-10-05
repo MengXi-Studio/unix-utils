@@ -1,0 +1,98 @@
+{
+	"name": "@meng-xi/unix-utils",
+	"type": "module",
+	"version": "0.8.0",
+	"private": false,
+	"description": "为 uni-app x 提供便利工具的集合（uni_modules UTS 插件形态，插件市场 + npm 双轨分发）",
+	"keywords": [
+		"@meng-xi/unix-utils",
+		"meng-xi",
+		"unix-utils",
+		"uni-app-x",
+		"uni_modules",
+		"uts",
+		"toast"
+	],
+	"main": "utssdk/index.uts",
+	"module": "utssdk/index.uts",
+	"types": "utssdk/index.uts",
+	"exports": {
+		".": "./utssdk/index.uts"
+	},
+	"files": [
+		"utssdk",
+		"changelog.md",
+		"license.md",
+		"README.md",
+		"README-en.md"
+	],
+	"peerDependencies": {
+		"vue": ">=3.0.0"
+	},
+	"peerDependenciesMeta": {
+		"vue": {
+			"optional": true
+		}
+	},
+	"author": {
+		"name": "PedroQue99",
+		"email": "ksmengfang@163.com"
+	},
+	"license": "MIT",
+	"homepage": "https://github.com/MengXi-Studio/unix-utils#readme",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/MengXi-Studio/unix-utils.git"
+	},
+	"bugs": "https://github.com/MengXi-Studio/unix-utils/issues",
+	"id": "unix-utils",
+	"displayName": "unix-utils 全端兼容工具集",
+	"engines": {
+		"HBuilderX": "^4.71.0",
+		"uni-app-x": "^4.71.0"
+	},
+	"dcloudext": {
+		"type": "uts",
+		"sale": {
+			"regular": {
+				"price": "0.00"
+			},
+			"sourcecode": {
+				"price": "0.00"
+			}
+		},
+		"contact": {
+			"qq": ""
+		},
+		"declaration": {
+			"ads": "无",
+			"data": "无",
+			"permissions": "无"
+		},
+		"npmurl": "https://www.npmjs.com/package/@meng-xi/unix-utils"
+	},
+	"uni_modules": {
+		"dependencies": [],
+		"encrypt": [],
+		"platforms": {
+			"client": {
+				"uni-app-x": {
+					"web": {
+						"safari": "√",
+						"chrome": "√"
+					},
+					"app": {
+						"android": {
+							"minVersion": "5.0"
+						},
+						"ios": "√",
+						"harmony": "-"
+					},
+					"mp": {
+						"weixin": "√"
+					}
+				}
+			}
+		}
+	}
+}
