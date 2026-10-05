@@ -11,6 +11,8 @@
 	"scripts": {
 		"sync:uni-modules": "node scripts/sync-uni-modules.mjs",
 		"sync:uni-modules:check": "node scripts/sync-uni-modules.mjs --check",
+		"dev:docs": "pnpm --filter @meng-xi/unix-utils-docs dev",
+		"build:docs": "pnpm --filter @meng-xi/unix-utils-docs build",
 		"release": "bumpp",
 		"typecheck": "tsc -p tsconfig.json --noEmit",
 		"lint": "eslint .",
