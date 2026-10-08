@@ -8,6 +8,9 @@ hero:
   name: '@meng-xi/unix-utils'
   text: uni-app x 便利工具集
   tagline: 为 uni-app x 提供全端兼容的 UTS 工具库（插件市场 + npm 双轨分发），当前模块 toast——uni.showToast 的全端兼容封装
+  image:
+    src: /logo.svg
+    alt: Unix Utils
   actions:
     - theme: brand
       text: 快速开始

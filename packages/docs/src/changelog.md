@@ -1,8 +1,6 @@
 # 更新日志
 
-本页同步自 [`packages/core/changelog.md`](https://github.com/MengXi-Studio/unix-utils/blob/master/packages/core/changelog.md)。
-
-## 0.1.0（2026-10-04）
+## [0.1.0] - 2026-10-04
 
 首个版本：toast 模块（`uni.showToast` 全端兼容封装）。
 

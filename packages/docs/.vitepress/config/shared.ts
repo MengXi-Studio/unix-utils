@@ -1,5 +1,11 @@
 import { defineConfig } from 'vitepress'
 
+/** 网站部署基础路径（CI 可经 DOCS_BASE 注入，本地默认 /unix-utils/） */
+export const base = process.env.DOCS_BASE || '/unix-utils/'
+
+/** 将根路径资源拼接到当前 base 下，避免 favicon 等资源 404 */
+const asset = (p: string) => base + p.replace(/^\//, '')
+
 export const sharedConfig = defineConfig({
 	/** 网站标题 */
 	title: 'Unix Utils',
@@ -18,6 +24,9 @@ export const sharedConfig = defineConfig({
 
 	/** 网站头标签 */
 	head: [
+		['link', { rel: 'icon', type: 'image/png', href: asset('logo.png') }],
+		['link', { rel: 'icon', href: asset('favicon.ico') }],
+
 		['meta', { property: 'og:type', content: 'website' }],
 		['meta', { property: 'og:title', content: 'Unix Utils' }],
 
@@ -28,6 +37,9 @@ export const sharedConfig = defineConfig({
 
 	/** 网站主题配置 */
 	themeConfig: {
+		/** 主题 logo（VitePress 自动拼 base） */
+		logo: '/logo.png',
+
 		/** 本地搜索 */
 		search: {
 			provider: 'local',
