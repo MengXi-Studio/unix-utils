@@ -3,7 +3,7 @@
 	"type": "module",
 	"version": "0.1.0",
 	"private": true,
-	"description": "为 uni-app x 提供便利工具的集合（UTS 源分发）",
+	"description": "为 uni-app x 提供便利工具的集合",
 	"packageManager": "pnpm@10.31.0",
 	"workspaces": [
 		"packages/*"

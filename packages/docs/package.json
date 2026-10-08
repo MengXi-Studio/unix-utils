@@ -1,6 +1,6 @@
 {
 	"name": "@meng-xi/unix-utils-docs",
-	"version": "0.8.1",
+	"version": "0.1.0",
 	"private": true,
 	"description": "@meng-xi/unix-utils 使用文档",
 	"type": "module",
