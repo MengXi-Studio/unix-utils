@@ -19,7 +19,6 @@
 	},
 	"files": [
 		"utssdk",
-		"changelog.md",
 		"license.md",
 		"README.md",
 		"README-en.md"
@@ -42,55 +41,5 @@
 		"type": "git",
 		"url": "git+https://github.com/MengXi-Studio/unix-utils.git"
 	},
-	"bugs": "https://github.com/MengXi-Studio/unix-utils/issues",
-	"id": "unix-utils",
-	"displayName": "unix-utils 全端兼容工具集",
-	"engines": {
-		"HBuilderX": "^4.71.0",
-		"uni-app-x": "^4.71.0"
-	},
-	"dcloudext": {
-		"type": "uts",
-		"sale": {
-			"regular": {
-				"price": "0.00"
-			},
-			"sourcecode": {
-				"price": "0.00"
-			}
-		},
-		"contact": {
-			"qq": ""
-		},
-		"declaration": {
-			"ads": "无",
-			"data": "无",
-			"permissions": "无"
-		},
-		"npmurl": "https://www.npmjs.com/package/@meng-xi/unix-utils"
-	},
-	"uni_modules": {
-		"dependencies": [],
-		"encrypt": [],
-		"platforms": {
-			"client": {
-				"uni-app-x": {
-					"web": {
-						"safari": "√",
-						"chrome": "√"
-					},
-					"app": {
-						"android": {
-							"minVersion": "5.0"
-						},
-						"ios": "√",
-						"harmony": "-"
-					},
-					"mp": {
-						"weixin": "√"
-					}
-				}
-			}
-		}
-	}
+	"bugs": "https://github.com/MengXi-Studio/unix-utils/issues"
 }

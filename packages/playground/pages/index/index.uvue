@@ -11,7 +11,7 @@
 </template>
 
 <script setup lang="uts">
-	import { showToast, showToastSuccess, showToastError, showToastInfo, hideToast } from '@/uni_modules/unix-utils'
+	import { showToast, showToastSuccess, showToastError, showToastInfo, hideToast } from '@/uni_modules/ux-utils'
 
 	function onSuccess(): void {
 		showToastSuccess('操作成功')
