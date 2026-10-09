@@ -12,6 +12,9 @@ node_modules
 dist
 *.local
 
+# npm 凭据（含 access token，禁止入库）
+.npmrc
+
 # Editor directories and files
 .idea
 *.suo
