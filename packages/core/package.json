@@ -3,15 +3,13 @@
 	"type": "module",
 	"version": "0.1.0",
 	"private": false,
-	"description": "为 uni-app x 提供便利工具的集合（uni_modules UTS 插件形态，插件市场 + npm 双轨分发）",
+	"description": "为 uni-app x 提供便利工具的集合",
 	"keywords": [
 		"@meng-xi/unix-utils",
 		"meng-xi",
 		"unix-utils",
 		"uni-app-x",
-		"uni_modules",
-		"uts",
-		"toast"
+		"utils"
 	],
 	"main": "utssdk/index.uts",
 	"module": "utssdk/index.uts",

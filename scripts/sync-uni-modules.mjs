@@ -19,7 +19,7 @@ const src = join(root, 'packages/core')
 const dest = join(root, 'packages/playground/uni_modules/unix-utils')
 
 /** 插件目录只需要这些内容（README-en 面向 npm 仓库浏览场景，playground 不需要） */
-const INCLUDE = ['utssdk', 'package.json', 'README.md', 'changelog.md', 'license.md']
+const INCLUDE = ['utssdk', 'README.md', 'changelog.md', 'license.md']
 
 /** 列出目录下全部相对文件；filterTop 为 true 时仅统计 INCLUDE 白名单内的顶层条目（与复制 filter 语义一致） */
 function listFiles(dir, filterTop = false) {
@@ -29,7 +29,7 @@ function listFiles(dir, filterTop = false) {
 		if (name === 'node_modules' || name === 'unpackage' || name === '.DS_Store') continue
 		if (filterTop && !INCLUDE.includes(name)) continue
 		const p = join(dir, name)
-		if (statSync(p).isDirectory()) out.push(...listFiles(p).map((f) => join(name, f)))
+		if (statSync(p).isDirectory()) out.push(...listFiles(p).map(f => join(name, f)))
 		else out.push(name)
 	}
 	return out.sort()
@@ -60,7 +60,7 @@ if (check) {
 rmSync(dest, { recursive: true, force: true })
 cpSync(src, dest, {
 	recursive: true,
-	filter: (from) => {
+	filter: from => {
 		const rel = from.slice(src.length + 1)
 		if (rel === '') return true
 		return INCLUDE.includes(rel.split(/[\\/]/)[0])
