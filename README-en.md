@@ -62,11 +62,14 @@ import {
 	hideToast
 } from '@/uni_modules/unix-utils'
 
-// Promise style: rejects with a structured ToastFail on failure
+// Promise style: rejects with a JSON string of the ToastFail structure on failure (unified across all platforms, restored via JSON.parse)
 try {
 	await showToastAsync({ title: 'Loading', icon: 'loading' })
 } catch (err) {
-	console.error(err.errCode, err.param, err.platform)
+	const fail = JSON.parse<ToastFail>(err as string)
+	if (fail != null) {
+		console.error(fail.errCode, fail.param, fail.platform)
+	}
 }
 
 // Semantic shortcuts

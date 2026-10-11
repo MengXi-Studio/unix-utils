@@ -56,6 +56,7 @@ export const enConfig: LocaleSpecificConfig<DefaultTheme.Config> = {
 					text: 'Core Features',
 					items: [
 						{ text: 'Toast', link: '/en/guide/toast' },
+						{ text: 'Modal', link: '/en/guide/modal' },
 						{ text: 'Channel Architecture & Fallback', link: '/en/guide/channels' }
 					]
 				},
@@ -66,7 +67,7 @@ export const enConfig: LocaleSpecificConfig<DefaultTheme.Config> = {
 			],
 			'/en/api/': [
 				{
-					text: 'Core API',
+					text: 'Toast API',
 					items: [
 						{ text: 'showToast()', link: '/en/api/show-toast' },
 						{ text: 'showToastAsync()', link: '/en/api/show-toast-async' },
@@ -76,11 +77,22 @@ export const enConfig: LocaleSpecificConfig<DefaultTheme.Config> = {
 					]
 				},
 				{
+					text: 'Modal API',
+					items: [
+						{ text: 'showModal()', link: '/en/api/show-modal' },
+						{ text: 'showModalAsync()', link: '/en/api/show-modal-async' },
+						{ text: 'showModalAlert()', link: '/en/api/show-modal-alert' },
+						{ text: 'configureModal()', link: '/en/api/configure-modal' }
+					]
+				},
+				{
 					text: 'Types',
 					items: [
 						{ text: 'ToastOptions', link: '/en/api/type-toast-options' },
 						{ text: 'ToastFail', link: '/en/api/type-toast-fail' },
-						{ text: 'ToastIcon / ToastPosition / ToastErrorCode', link: '/en/api/type-enums' }
+						{ text: 'ToastIcon / ToastPosition / ToastErrorCode', link: '/en/api/type-enums' },
+						{ text: 'ModalOptions', link: '/en/api/type-modal-options' },
+						{ text: 'ModalFail', link: '/en/api/type-modal-fail' }
 					]
 				}
 			]

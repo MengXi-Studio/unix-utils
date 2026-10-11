@@ -1,11 +1,23 @@
 {
 	"pages": [
 		{
-			"path": "pages/index/index",
-			"style": {
-				"navigationBarTitleText": "unix-utils"
-			}
+		"path": "pages/index/index",
+		"style": {
+			"navigationBarTitleText": "unix-utils"
 		}
+	},
+	{
+		"path": "pages/modal/probe",
+		"style": {
+			"navigationBarTitleText": "showModal 实测"
+		}
+	},
+	{
+		"path": "pages/modal/demo",
+		"style": {
+			"navigationBarTitleText": "modal 功能测试"
+		}
+	}
 	],
 	"globalStyle": {
 		"navigationBarTextStyle": "black",

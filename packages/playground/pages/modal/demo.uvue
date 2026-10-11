@@ -1,0 +1,344 @@
+<template>
+	<scroll-view>
+		<view class="container">
+			<text class="title">ux-utils modal 库功能测试（M3）</text>
+			<text class="hint">每个用例在控制台输出 [modal-demo] 日志，颜色 / 截断表现需配合截图取证</text>
+			<button class="btn" @click="onDefault">1. showModal 默认双按钮</button>
+			<button class="btn" @click="onColor">2. 自定义按钮颜色</button>
+			<button class="btn" @click="onColorInvalid">3. 非法颜色（fail 2001）</button>
+			<button class="btn" @click="onColorAlpha">4. 8 位色值 #RRGGBBAA</button>
+			<button class="btn" @click="onLongText">5. 超长按钮文案（12 字符）</button>
+			<button class="btn" @click="onEditable">6. editable + placeholder</button>
+			<button class="btn" @click="onEmpty">7. 空参（fail 1001）</button>
+			<button class="btn" @click="onSingleButton">8. showCancel=false 单按钮</button>
+			<button class="btn" @click="onAsyncConfirm">9. showModalAsync（Promise）</button>
+			<button class="btn" @click="onAsyncCancel">10. showModalAsync 点取消</button>
+			<button class="btn" @click="onAsyncEmpty">11. showModalAsync 空参 reject</button>
+			<button class="btn" @click="onAlert">12. showModalAlert 单按钮</button>
+			<button class="btn" @click="onAlertNoContent">13. showModalAlert 无内容</button>
+			<button class="btn" @click="onConfig">14. configureModal 全局默认</button>
+			<button class="btn" @click="onConfigShow">15. 查看配置后的默认弹窗</button>
+			<button class="btn" @click="onConfigReset">16. configureModal 重置</button>
+		</view>
+	</scroll-view>
+</template>
+
+<script setup lang="uts">
+	import {
+		showModal,
+		showModalAsync,
+		showModalAlert,
+		configureModal
+	} from '@/uni_modules/ux-utils'
+	import type { ModalFail } from '@/uni_modules/ux-utils'
+
+	/**
+	 * 用例 1：showModal 回调式默认双按钮
+	 * 预期：确认按钮右侧（Android 平台惯例在左），success 返回 confirm/cancel 互斥
+	 */
+	function onDefault(): void {
+		showModal({
+			title: '默认弹窗',
+			content: '这是 ux-utils showModal 的默认双按钮弹窗',
+			success: (res) => {
+				console.log(`[modal-demo][default] confirm=${res.confirm} cancel=${res.cancel} content=${res.content}`)
+			},
+			fail: (err) => {
+				console.log(`[modal-demo][default] fail: ${err.errCode} ${err.errMsg}`)
+			},
+			complete: (res) => {
+				console.log('[modal-demo][default] complete 已触发')
+			}
+		})
+	}
+
+	/**
+	 * 用例 2：自定义按钮颜色（合法 6 位 16 进制）
+	 * 预期：确认按钮红色 #ff0000，取消按钮绿色 #00ff00，无 fail
+	 */
+	function onColor(): void {
+		showModal({
+			title: '自定义颜色',
+			content: '确认按钮应为红色，取消按钮应为绿色',
+			confirmColor: '#ff0000',
+			cancelColor: '#00ff00',
+			success: (res) => {
+				console.log(`[modal-demo][color] confirm=${res.confirm} cancel=${res.cancel}`)
+			},
+			fail: (err) => {
+				console.log(`[modal-demo][color] fail: ${err.errCode} ${err.errMsg}`)
+			}
+		})
+	}
+
+	/**
+	 * 用例 3：非法颜色（命名色）
+	 * 预期：fail 2001（param='confirmColor'），弹窗仍以默认色展示，success 正常返回
+	 */
+	function onColorInvalid(): void {
+		showModal({
+			title: '非法颜色',
+			content: 'confirmColor 传入命名色 red，库内应降级为默认色并 fail 2001',
+			confirmColor: 'red',
+			success: (res) => {
+				console.log(`[modal-demo][color-invalid] confirm=${res.confirm} cancel=${res.cancel}`)
+			},
+			fail: (err) => {
+				console.log(`[modal-demo][color-invalid] fail: errCode=${err.errCode} param=${err.param} msg=${err.errMsg}`)
+			}
+		})
+	}
+
+	/**
+	 * 用例 4：8 位色值 #RRGGBBAA
+	 * 预期：Web 端保留 alpha 正常渲染；App / 原生端剥 alpha 并 fail 2001（param='confirmColor'）
+	 */
+	function onColorAlpha(): void {
+		showModal({
+			title: '8 位色值',
+			content: '确认按钮为 #88333388，观察透明度是否保留',
+			confirmColor: '#88333388',
+			success: (res) => {
+				console.log(`[modal-demo][color-alpha] confirm=${res.confirm} cancel=${res.cancel}`)
+			},
+			fail: (err) => {
+				console.log(`[modal-demo][color-alpha] fail: errCode=${err.errCode} param=${err.param} msg=${err.errMsg}`)
+			}
+		})
+	}
+
+	/**
+	 * 用例 5：超长按钮文案（12 字符，M0 long-text 补测）
+	 * 预期：App / Web 完整显示；微信 / 鸿蒙库内截断为 4 字符
+	 */
+	function onLongText(): void {
+		showModal({
+			title: '超长文案',
+			content: '按钮文案均超过 4 个字符，观察截断表现',
+			cancelText: '取消按钮超长文案',
+			confirmText: '确认按钮超长文案',
+			success: (res) => {
+				console.log(`[modal-demo][long-text] confirm=${res.confirm} cancel=${res.cancel}`)
+			},
+			fail: (err) => {
+				console.log(`[modal-demo][long-text] fail: ${err.errCode} ${err.errMsg}`)
+			}
+		})
+	}
+
+	/**
+	 * 用例 6：editable + placeholderText
+	 * 预期：输入框出现且 placeholder 显示；confirm 时 content 携带输入内容，cancel 时 content 为 null
+	 */
+	function onEditable(): void {
+		showModal({
+			title: '可输入弹窗',
+			content: '请输入内容',
+			editable: true,
+			placeholderText: '请在此输入',
+			success: (res) => {
+				console.log(`[modal-demo][editable] confirm=${res.confirm} cancel=${res.cancel} content=${res.content}`)
+			},
+			fail: (err) => {
+				console.log(`[modal-demo][editable] fail: ${err.errCode} ${err.errMsg}`)
+			}
+		})
+	}
+
+	/**
+	 * 用例 7：title / content 均空
+	 * 预期：不弹窗，fail 1001（errMsg='title 与 content 至少其一非空'，param='title'），complete 同步触发
+	 */
+	function onEmpty(): void {
+		showModal({
+			title: '',
+			content: '',
+			success: (res) => {
+				console.log(`[modal-demo][empty] confirm=${res.confirm}`)
+			},
+			fail: (err) => {
+				console.log(`[modal-demo][empty] fail: errCode=${err.errCode} param=${err.param} msg=${err.errMsg}`)
+			},
+			complete: (res) => {
+				console.log('[modal-demo][empty] complete 已触发')
+			}
+		})
+	}
+
+	/**
+	 * 用例 8：showCancel=false 单确定按钮
+	 * 预期：仅显示确定按钮，confirm=true cancel=false
+	 */
+	function onSingleButton(): void {
+		showModal({
+			title: '单按钮',
+			content: '仅一个确定按钮',
+			showCancel: false,
+			success: (res) => {
+				console.log(`[modal-demo][single] confirm=${res.confirm} cancel=${res.cancel}`)
+			},
+			fail: (err) => {
+				console.log(`[modal-demo][single] fail: ${err.errCode} ${err.errMsg}`)
+			}
+		})
+	}
+
+	/**
+	 * 用例 9：showModalAsync 点确认
+	 * 预期：Promise resolve confirm=true
+	 */
+	function onAsyncConfirm(): void {
+		showModalAsync({
+			title: '异步弹窗',
+			content: '点击确认后 Promise resolve'
+		}).then((res) => {
+			console.log(`[modal-demo][async] resolve: confirm=${res.confirm} cancel=${res.cancel}`)
+		}).catch((err) => {
+			const f = JSON.parse<ModalFail>(err as string)
+			if (f != null) {
+				console.log(`[modal-demo][async] reject: errCode=${f.errCode} param=${f.param} msg=${f.errMsg}`)
+			} else {
+				console.log(`[modal-demo][async] reject: ${err}`)
+			}
+		})
+	}
+
+	/**
+	 * 用例 10：showModalAsync 点取消
+	 * 预期：点取消不算失败，仍 resolve cancel=true
+	 */
+	function onAsyncCancel(): void {
+		showModalAsync({
+			title: '异步点取消',
+			content: '点击取消按钮，Promise 应 resolve 而非 reject'
+		}).then((res) => {
+			console.log(`[modal-demo][async-cancel] resolve: confirm=${res.confirm} cancel=${res.cancel}`)
+		}).catch((err) => {
+			const f = JSON.parse<ModalFail>(err as string)
+			if (f != null) {
+				console.log(`[modal-demo][async-cancel] reject: errCode=${f.errCode} param=${f.param} msg=${f.errMsg}`)
+			} else {
+				console.log(`[modal-demo][async-cancel] reject: ${err}`)
+			}
+		})
+	}
+
+	/**
+	 * 用例 11：showModalAsync 空参
+	 * 预期：Promise reject ModalFail 结构 JSON 字符串（errCode=1001），JSON.parse 还原
+	 */
+	function onAsyncEmpty(): void {
+		showModalAsync({
+			title: '',
+			content: ''
+		}).then((res) => {
+			console.log(`[modal-demo][async-empty] resolve: confirm=${res.confirm}`)
+		}).catch((err) => {
+			const f = JSON.parse<ModalFail>(err as string)
+			if (f != null) {
+				console.log(`[modal-demo][async-empty] reject: errCode=${f.errCode} param=${f.param} msg=${f.errMsg}`)
+			} else {
+				console.log(`[modal-demo][async-empty] reject: ${err}`)
+			}
+		})
+	}
+
+	/**
+	 * 用例 12：showModalAlert 单确定按钮
+	 * 预期：alert 语义弹窗，仅确认按钮
+	 */
+	function onAlert(): void {
+		showModalAlert('提示', '这是 showModalAlert 的内容')
+		console.log('[modal-demo][alert] 已调用')
+	}
+
+	/**
+	 * 用例 13：showModalAlert 无内容（content 传 null）
+	 * 预期：仅标题弹窗，内容区不塌陷
+	 */
+	function onAlertNoContent(): void {
+		showModalAlert('仅标题提示', null)
+		console.log('[modal-demo][alert-null] 已调用')
+	}
+
+	/**
+	 * 用例 14：configureModal 设置全局默认
+	 * 预期：之后弹窗默认文案变为 '知道了' / '再想想'，确认按钮变绿色
+	 */
+	function onConfig(): void {
+		configureModal({
+			confirmText: '知道了',
+			cancelText: '再想想',
+			confirmColor: '#00aa00',
+			cancelColor: null
+		})
+		console.log('[modal-demo][config] 已设置全局默认')
+	}
+
+	/**
+	 * 用例 15：查看配置后的默认弹窗（不传任何覆盖参数）
+	 * 预期：按钮文案为 '知道了' / '再想想'，确认按钮绿色
+	 */
+	function onConfigShow(): void {
+		showModal({
+			title: '全局默认验证',
+			content: '按钮文案与颜色应来自 configureModal 配置',
+			success: (res) => {
+				console.log(`[modal-demo][config-show] confirm=${res.confirm} cancel=${res.cancel}`)
+			},
+			fail: (err) => {
+				console.log(`[modal-demo][config-show] fail: ${err.errCode} ${err.errMsg}`)
+			}
+		})
+	}
+
+	/**
+	 * 用例 16：configureModal 重置（字段传 null 恢复库内置默认）
+	 * 预期：之后弹窗恢复 '确定' / '取消' 与默认颜色
+	 */
+	function onConfigReset(): void {
+		configureModal({
+			confirmText: null,
+			cancelText: null,
+			confirmColor: null,
+			cancelColor: null
+		})
+		showModal({
+			title: '重置验证',
+			content: '按钮应恢复为 确定 / 取消 与默认颜色',
+			success: (res) => {
+				console.log(`[modal-demo][config-reset] confirm=${res.confirm} cancel=${res.cancel}`)
+			},
+			fail: (err) => {
+				console.log(`[modal-demo][config-reset] fail: ${err.errCode} ${err.errMsg}`)
+			}
+		})
+	}
+</script>
+
+<style>
+	.container {
+		flex: 1;
+		flex-direction: column;
+		align-items: stretch;
+		padding: 24rpx;
+	}
+
+	.title {
+		font-size: 32rpx;
+		font-weight: bold;
+		text-align: center;
+		padding: 24rpx 0;
+	}
+
+	.hint {
+		font-size: 24rpx;
+		color: #666666;
+		text-align: center;
+		padding-bottom: 24rpx;
+	}
+
+	.btn {
+		margin: 12rpx 0;
+	}
+</style>

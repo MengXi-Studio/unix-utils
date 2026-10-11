@@ -1,0 +1,252 @@
+<template>
+	<scroll-view style="flex: 1">
+		<view class="container">
+			<text class="title">uni.showModal 参数矩阵实测（M0）</text>
+			<text class="hint">每个用例在控制台输出 [modal-probe] 日志，颜色 / 位置 / 蒙层需配合截图取证</text>
+			<button class="btn" @click="onDefault">1. 默认双按钮</button>
+			<button class="btn" @click="onColor">2. 自定义颜色</button>
+			<button class="btn" @click="onColorAlpha">3. 带透明度颜色 #11223388</button>
+			<button class="btn" @click="onColorInvalid">4. 非法颜色 red</button>
+			<button class="btn" @click="onEditable">5. editable + placeholder</button>
+			<button class="btn" @click="onSingleButton">6. showCancel=false 单按钮</button>
+			<button class="btn" @click="onLongText">7. 超长按钮文案（10+ 字符）</button>
+			<button class="btn" @click="onMaskTap">8. 蒙层点击（点弹窗外区域）</button>
+			<button class="btn" @click="onConcurrent">9. 连续调用两次</button>
+			<button class="btn" @click="onEmpty">10. title/content 均空</button>
+			<button class="btn" @click="onTitleOnly">11. 仅 title 无 content</button>
+		</view>
+	</scroll-view>
+</template>
+
+<script setup lang="uts">
+	/**
+	 * M0 前置实测页：直接调用 uni.showModal（不经库封装），探测各端真实行为
+	 * 实测项：默认色 / 颜色参数 / #RRGGBBAA / editable / 文案截断 / 按钮位置 / 蒙层交互 / 返回值字段 / 连续调用
+	 */
+
+	/**
+	 * 用例 1：默认双按钮
+	 * 观察点：默认按钮颜色、确认按钮位置（Android 左 / 其余右）、返回值字段完整性
+	 */
+	function onDefault(): void {
+		uni.showModal({
+			title: '默认标题',
+			content: '默认内容文本',
+			success: (res) => {
+				console.log(`[modal-probe][default] confirm=${res.confirm} cancel=${res.cancel} content=${res.content}`)
+			},
+			fail: (err) => {
+				console.log(`[modal-probe][default] fail: ${err.errMsg}`)
+			}
+		})
+	}
+
+	/**
+	 * 用例 2：自定义颜色（合法 6 位 16 进制）
+	 * 观察点：confirmColor / cancelColor 是否生效（App 端官方未标注，本用例为 Q1 决策关键依据）
+	 */
+	function onColor(): void {
+		uni.showModal({
+			title: '自定义颜色',
+			content: '确认按钮应为红色，取消按钮应为绿色',
+			confirmColor: '#ff0000',
+			cancelColor: '#00ff00',
+			success: (res) => {
+				console.log(`[modal-probe][color] confirm=${res.confirm} cancel=${res.cancel}`)
+			},
+			fail: (err) => {
+				console.log(`[modal-probe][color] fail: ${err.errMsg}`)
+			}
+		})
+	}
+
+	/**
+	 * 用例 3：带透明度的 8 位颜色 #RRGGBBAA
+	 * 观察点：平台是否接受 8 位色值（设计文档 3.8 风险项：string.ColorString 边界）
+	 */
+	function onColorAlpha(): void {
+		uni.showModal({
+			title: '8 位色值',
+			content: '确认按钮若为 #112233 半透明红调则支持 alpha，否则为默认色',
+			confirmColor: '#88333388',
+			success: (res) => {
+				console.log(`[modal-probe][color-alpha] confirm=${res.confirm} cancel=${res.cancel}`)
+			},
+			fail: (err) => {
+				console.log(`[modal-probe][color-alpha] fail: ${err.errMsg}`)
+			}
+		})
+	}
+
+	/**
+	 * 用例 4：非法颜色（命名色）
+	 * 观察点：平台对非法色值的容错行为（报错 / 静默回退默认色 / 原样传入渲染异常）
+	 */
+	function onColorInvalid(): void {
+		uni.showModal({
+			title: '非法颜色',
+			content: 'confirmColor 传入命名色 red，观察平台表现',
+			confirmColor: 'red',
+			success: (res) => {
+				console.log(`[modal-probe][color-invalid] confirm=${res.confirm} cancel=${res.cancel}`)
+			},
+			fail: (err) => {
+				console.log(`[modal-probe][color-invalid] fail: ${err.errMsg}`)
+			}
+		})
+	}
+
+	/**
+	 * 用例 5：editable + placeholderText
+	 * 观察点：输入框是否出现、placeholder 是否显示、success 回调 content 是否携带输入内容
+	 */
+	function onEditable(): void {
+		uni.showModal({
+			title: '可输入弹窗',
+			content: '请输入内容',
+			editable: true,
+			placeholderText: '请在此输入',
+			success: (res) => {
+				console.log(`[modal-probe][editable] confirm=${res.confirm} cancel=${res.cancel} content=${res.content}`)
+			},
+			fail: (err) => {
+				console.log(`[modal-probe][editable] fail: ${err.errMsg}`)
+			}
+		})
+	}
+
+	/**
+	 * 用例 6：showCancel=false 单确定按钮
+	 * 观察点：单按钮形态、返回值字段（cancel 是否仍返回）
+	 */
+	function onSingleButton(): void {
+		uni.showModal({
+			title: '单按钮',
+			content: '仅一个确定按钮',
+			showCancel: false,
+			success: (res) => {
+				console.log(`[modal-probe][single] confirm=${res.confirm} cancel=${res.cancel}`)
+			},
+			fail: (err) => {
+				console.log(`[modal-probe][single] fail: ${err.errMsg}`)
+			}
+		})
+	}
+
+	/**
+	 * 用例 7：超长按钮文案（12 字符）
+	 * 观察点：平台截断行为（硬截 / 省略号 / 不截断）——微信文档标注 4 字符上限，App / Web 应不截
+	 */
+	function onLongText(): void {
+		uni.showModal({
+			title: '超长文案',
+			content: '按钮文案均超过 4 个字符，观察截断表现',
+			cancelText: '取消按钮超长文案',
+			confirmText: '确认按钮超长文案',
+			success: (res) => {
+				console.log(`[modal-probe][long-text] confirm=${res.confirm} cancel=${res.cancel}`)
+			},
+			fail: (err) => {
+				console.log(`[modal-probe][long-text] fail: ${err.errMsg}`)
+			}
+		})
+	}
+
+	/**
+	 * 用例 8：蒙层点击
+	 * 观察点：点击弹窗外蒙层区域是否关闭弹窗、关闭时 success 返回值（Android 官方语义返回 cancel=true）
+	 */
+	function onMaskTap(): void {
+		uni.showModal({
+			title: '蒙层测试',
+			content: '请点击弹窗外的蒙层区域，观察弹窗是否关闭及返回值',
+			success: (res) => {
+				console.log(`[modal-probe][mask-tap] confirm=${res.confirm} cancel=${res.cancel}`)
+			},
+			fail: (err) => {
+				console.log(`[modal-probe][mask-tap] fail: ${err.errMsg}`)
+			}
+		})
+	}
+
+	/**
+	 * 用例 9：连续调用两次
+	 * 观察点：排队 / 替换 / 报错（设计文档 3.4 连续调用行，实测后文档标注）
+	 */
+	function onConcurrent(): void {
+		uni.showModal({
+			title: '第一层',
+			content: '先调用的弹窗',
+			success: (res) => {
+				console.log(`[modal-probe][concurrent-1] confirm=${res.confirm} cancel=${res.cancel}`)
+			}
+		})
+		uni.showModal({
+			title: '第二层',
+			content: '后调用的弹窗',
+			success: (res) => {
+				console.log(`[modal-probe][concurrent-2] confirm=${res.confirm} cancel=${res.cancel}`)
+			}
+		})
+	}
+
+	/**
+	 * 用例 10：title / content 均为空字符串
+	 * 观察点：平台行为（空弹窗 / 报错）——库内将 fail 1001（Q8），此处观测平台原生表现作对照
+	 */
+	function onEmpty(): void {
+		uni.showModal({
+			title: '',
+			content: '',
+			success: (res) => {
+				console.log(`[modal-probe][empty] confirm=${res.confirm} cancel=${res.cancel}`)
+			},
+			fail: (err) => {
+				console.log(`[modal-probe][empty] fail: ${err.errMsg}`)
+			}
+		})
+	}
+
+	/**
+	 * 用例 11：仅 title 无 content
+	 * 观察点：content 缺省时的布局表现（内容区是否塌陷）
+	 */
+	function onTitleOnly(): void {
+		uni.showModal({
+			title: '仅标题',
+			success: (res) => {
+				console.log(`[modal-probe][title-only] confirm=${res.confirm} cancel=${res.cancel} content=${res.content}`)
+			},
+			fail: (err) => {
+				console.log(`[modal-probe][title-only] fail: ${err.errMsg}`)
+			}
+		})
+	}
+</script>
+
+<style>
+	.container {
+		flex: 1;
+		flex-direction: column;
+		align-items: stretch;
+		padding: 24rpx;
+	}
+
+	.title {
+		font-size: 32rpx;
+		font-weight: bold;
+		text-align: center;
+		padding: 24rpx 0;
+	}
+
+	.hint {
+		font-size: 24rpx;
+		color: #666666;
+		text-align: center;
+		padding-bottom: 24rpx;
+	}
+
+	.btn {
+		margin: 12rpx 0;
+	}
+</style>

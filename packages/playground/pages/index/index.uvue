@@ -1,5 +1,7 @@
 <template>
 	<view class="container">
+		<button @click="onModalProbe">showModal 实测</button>
+		<button @click="onModalDemo">modal 功能测试</button>
 		<button @click="onSuccess">成功</button>
 		<button @click="onError">错误</button>
 		<button @click="onInfo">信息</button>
@@ -7,11 +9,30 @@
 		<button @click="onTop">顶部</button>
 		<button @click="onMask">蒙层</button>
 		<button @click="onHide">手动隐藏</button>
+		<button @click="onToastAsyncFail">async 降级 reject</button>
 	</view>
 </template>
 
 <script setup lang="uts">
-	import { showToast, showToastSuccess, showToastError, showToastInfo, hideToast } from '@/uni_modules/ux-utils'
+	import { showToast, showToastSuccess, showToastError, showToastInfo, showToastAsync, hideToast } from '@/uni_modules/ux-utils'
+
+	/**
+	 * 跳转 showModal 参数矩阵实测页（M0 前置实测）
+	 */
+	function onModalProbe(): void {
+		uni.navigateTo({
+			url: '/pages/modal/probe'
+		})
+	}
+
+	/**
+	 * 跳转 modal 库功能测试页（M3）
+	 */
+	function onModalDemo(): void {
+		uni.navigateTo({
+			url: '/pages/modal/demo'
+		})
+	}
 
 	function onSuccess(): void {
 		showToastSuccess('操作成功')
@@ -57,6 +78,23 @@
 			hideToast()
 		}, 1500)
 	}
+
+	/**
+	 * toast async 失败契约验证：icon='fail' 全端触发降级（fail 2001 → reject）
+	 * 预期：reject 值为 ToastFail 结构 JSON 字符串（errCode=2001 param=icon），屏幕 toast 显示该 JSON
+	 */
+	function onToastAsyncFail(): void {
+		showToastAsync({
+			title: 'icon=fail 降级测试',
+			icon: 'fail'
+		}).then(() => {
+			console.log('[toast-async-fail] resolve（未触发降级）')
+		}).catch((err) => {
+			const msg = err as string
+			console.log(`[toast-async-fail] reject: ${msg}`)
+			showToastError(`reject: ${msg}`)
+		})
+	}
 </script>
 
 <style>
@@ -65,5 +103,6 @@
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
+		padding-bottom: 24rpx;
 	}
 </style>

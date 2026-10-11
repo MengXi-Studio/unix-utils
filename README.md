@@ -62,11 +62,14 @@ import {
 	hideToast
 } from '@/uni_modules/unix-utils'
 
-// Promise 式：失败 reject 结构化 ToastFail
+// Promise 式：失败 reject ToastFail 结构的 JSON 字符串（全端统一，JSON.parse 还原）
 try {
 	await showToastAsync({ title: '加载中', icon: 'loading' })
 } catch (err) {
-	console.error(err.errCode, err.param, err.platform)
+	const fail = JSON.parse<ToastFail>(err as string)
+	if (fail != null) {
+		console.error(fail.errCode, fail.param, fail.platform)
+	}
 }
 
 // 语义化快捷

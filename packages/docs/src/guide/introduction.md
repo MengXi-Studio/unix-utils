@@ -6,7 +6,7 @@
 - **强类型 UTS**：`type` 定义对象类型、字面量联合定义枚举、无 `undefined`、严格条件布尔；
 - **平台差异收敛在库内**：业务代码写一次，平台特有逻辑用条件编译（`#ifdef`）隔离在库内部。
 
-当前模块为 **toast**：对 `uni.showToast` 的全端兼容封装。
+当前包含两个模块：**toast**（对 `uni.showToast` 的全端兼容封装）与 **modal**（对 `uni.showModal` 的全端兼容封装，v0.2.0 起）。
 
 ## 为什么需要它
 
@@ -22,6 +22,17 @@ uni-app x 原生的 `uni.showToast` 在五端（Android / iOS / Web / 微信 / �
 | **错误信息粗糙** | 失败仅 `errCode` + `errMsg`，缺少「哪个参数、哪个端不支持」的结构化信息 |
 
 unix-utils 用一条 `showToast` API 抹平这些差异。
+
+modal 同理。原生 `uni.showModal` 的主要差异：
+
+| 差异点 | 现状 |
+| --- | --- |
+| **返回值不齐** | 部分端 `cancel` 字段缺失，业务需判空才能区分确认 / 取消 |
+| **颜色格式不一** | 各端对颜色格式支持不一（命名色 / 8 位 alpha 色在部分端静默回退默认色、不报错） |
+| **按钮文案截断** | 微信 / 鸿蒙按钮文案超 4 字符受平台约束 |
+| **错误信息粗糙** | 失败仅 `errCode` + `errMsg`，缺少「哪个参数、哪个端不支持」的结构化信息 |
+
+unix-utils 用一条 `showModal` API 抹平这些差异（Web 端 DOM 自绘兜底）。
 
 ## 两层兼容模型
 
@@ -44,11 +55,11 @@ unix-utils 用一条 `showToast` API 抹平这些差异。
 
 各端自动选择最优通道，业务零配置：
 
-| 端 | 通道 | 说明 |
+| 端 | toast 通道 | modal 通道 |
 | --- | --- | --- |
-| App-Android / App-iOS | UTS 直挂系统窗口 | Android `WindowManager` / iOS `UIWindow` 免注册挂窗，position / warning / mask 全生效，失败自动降级 `uni.showToast` |
-| Web | DOM 单例自绘 | position / warning / 不截断全生效 |
-| 微信 / 鸿蒙 | `uni.showToast` 原生 | 不支持的参数自动降级并经 `fail` 回调留痕 |
+| App-Android / App-iOS | UTS 直挂系统窗口（position / warning / mask 全生效，失败降级 `uni.showToast`） | `uni.showModal` 原生 |
+| Web | DOM 单例自绘 | DOM 单例自绘 |
+| 微信 / 鸿蒙 | `uni.showToast` 原生（不支持参数降级留痕） | `uni.showModal` 原生 |
 
 详见[通道架构与降级](/guide/channels)。
 
@@ -65,11 +76,15 @@ unix-utils 用一条 `showToast` API 抹平这些差异。
 | 可靠隐藏 | `hideToast` 在自绘通道可靠隐藏（含 position 形态） |
 | 结构化降级 | `ToastFail.errCode`（1001 参数非法 / 2001 平台不支持）+ `param` / `platform` 精确定位 |
 | 强类型 | `ToastOptions` 除 `title` 外全可选字段，`icon` / `position` 为字面量联合类型 |
+| modal 参数完全对齐 | `title / content / showCancel / cancelText / cancelColor / confirmText / confirmColor / editable / placeholderText` 及回调全保留，迁移零成本 |
+| modal 返回值恒定 | `ModalResult` 的 `confirm` / `cancel` 恒存在且互斥（消除各端 `cancel` 字段缺失差异） |
+| modal 双轨 + alert | 回调式 `showModal` + Promise 式 `showModalAsync`（点取消不算失败）；`showModalAlert` 单确定按钮一行调用 |
+| modal 全局默认 | `configureModal` 项目级预设按钮文案与颜色 |
 
 ## 适合谁
 
 - **需要跨端提示行为一致**：一套 API 覆盖五端，参数降级可预期、可感知。
-- **受够了原生 toast 的差异**：position 不可用、icon 各端不对齐、微信 7 字截断——库里全部处理。
+- **受够了原生 toast / modal 的差异**：position 不可用、icon 各端不对齐、微信 7 字截断、modal 返回值缺字段——库里全部处理。
 - **追求强类型与零依赖**：UTS 源分发，不引入任何第三方 UI 依赖。
 
 ## 下一步

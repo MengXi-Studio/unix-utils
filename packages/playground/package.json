@@ -1,6 +1,6 @@
 {
 	"name": "@meng-xi/unix-utils-playground",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"private": true,
 	"devDependencies": {
 		"@dcloudio/vite-plugin-uni": "3.0.0-alpha-5020520260821001",

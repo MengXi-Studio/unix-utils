@@ -1,5 +1,28 @@
 # 更新日志
 
+## [0.2.0] - 2026-10-11
+
+第二个版本：modal 模块（`uni.showModal` 全端兼容封装）。
+
+### 新增
+
+- **modal 模块**：对 `uni.showModal` 的全端兼容封装（Android / iOS / Web / 微信 / 鸿蒙五端），业务侧统一 `import { showModal } from '@/uni_modules/unix-utils'`
+- **参数完全对齐**：`title / content / showCancel / cancelText / cancelColor / confirmText / confirmColor / editable / placeholderText / success / fail / complete` 与 `uni.showModal` 同构，迁移零成本；除回调外均为可选字段
+- **分端混合通道**（自动分发，业务零配置）：
+  - App / 微信 / 鸿蒙：`uni.showModal` 原生通道（M0 真机实测颜色全生效）+ 库内归一化
+  - Web：DOM 单例自绘（蒙层点击不关闭、editable 真实渲染 `<input>`）
+- **返回值恒定**：`ModalResult` 的 `confirm` / `cancel` 恒存在且互斥（消除各端 cancel 字段缺失差异），`editable` 场景 `content` 携带用户输入
+- **颜色归一化**：校验 `#RGB` / `#RRGGBB` / `#RRGGBBAA`，非法值降级平台默认色并经 fail 回调留痕；App 原生通道不支持 alpha 时自动剥离并留痕；未配置时库内默认确认色 `#007aff` / 取消色 `#000000`（微信端不干预、随平台默认）
+- **受限端文案截断**：微信 / 鸿蒙端按钮文案超 4 字符库内自动截断（消除平台静默行为差异），App / Web 端完整显示
+- **Promise 式 `showModalAsync`**：resolve `ModalResult`，点取消不算失败（与 uni 语义一致）；失败 reject `ModalFail` 结构的 JSON 字符串（全端统一，业务侧 `JSON.parse<ModalFail>(err as string)` 还原）
+- **快捷 API `showModalAlert`**：单确定按钮 alert 语义（`title` + 可选 `content`）
+- **全局默认配置 `configureModal`**：项目级预设按钮文案与颜色，字段传 `null` 表示沿用库内置默认 / 平台默认
+- **结构化失败信息 `ModalFail`**：`errCode`（1001 参数非法 / 2001 平台不支持且已降级）、`errSubject`（固定 `'unix-utils:modal'`）、`param`（触发问题的参数名）、`platform`（端标识），降级可感知、可过滤；`ModalFail` / `ModalResult` 类型已对外导出
+
+### 变更（破坏性）
+
+- **`showToastAsync` 失败 reject 值改为 JSON 字符串**：0.1.0 中 reject `ToastFail` 对象；实测 App 端运行时 async 代理仅将 reject 值按字符串透传（对象字段全部丢失），为全端契约一致，0.2.0 起统一 reject `ToastFail` 结构的 JSON 字符串，业务侧 `JSON.parse<ToastFail>(err as string)` 还原。回调式 `showToast` 的 fail 回调仍收到结构化对象，不受影响；`ToastFail` 类型 0.2.0 起对外导出
+
 ## [0.1.0] - 2026-10-04
 
 首个版本：toast 模块（`uni.showToast` 全端兼容封装）。

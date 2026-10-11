@@ -2,11 +2,12 @@ import DCloudUTSFoundation
 import DCloudUniappRuntime
 import UIKit
 import DCloudUTSExtAPI
+public var showModal__1 = DCloudUTSExtAPI.showModal
 public var showToast__1 = DCloudUTSExtAPI.showToast
 public typealias ToastIcon = String
 public typealias ToastPosition = String
 public typealias ToastErrorCode = NSNumber
-@objc(UTSSDKModulesUnixUtilsToastResult)
+@objc(UTSSDKModulesUxUtilsToastResult)
 @objcMembers
 public class ToastResult : NSObject, UTSObject {
     public var errMsg: String!
@@ -30,7 +31,7 @@ public class ToastResult : NSObject, UTSObject {
         self.errMsg = obj["errMsg"] as! String
     }
 }
-@objc(UTSSDKModulesUnixUtilsToastFail)
+@objc(UTSSDKModulesUxUtilsToastFail)
 @objcMembers
 public class ToastFail : NSObject, UTSObject {
     public var errCode: ToastErrorCode!
@@ -70,7 +71,7 @@ public class ToastFail : NSObject, UTSObject {
         self.platform = obj["platform"] as! String
     }
 }
-@objc(UTSSDKModulesUnixUtilsToastOptions)
+@objc(UTSSDKModulesUxUtilsToastOptions)
 @objcMembers
 public class ToastOptions : NSObject, UTSObject {
     public var title: String!
@@ -126,7 +127,7 @@ public class ToastOptions : NSObject, UTSObject {
         self.complete = obj["complete"] as! ((_ res: Any) -> Void)?
     }
 }
-@objc(UTSSDKModulesUnixUtilsNormalizedOptions)
+@objc(UTSSDKModulesUxUtilsNormalizedOptions)
 @objcMembers
 public class NormalizedOptions : NSObject, UTSObject {
     public var title: String!
@@ -182,7 +183,7 @@ public class NormalizedOptions : NSObject, UTSObject {
         self.complete = obj["complete"] as! ((_ res: Any) -> Void)?
     }
 }
-@objc(UTSSDKModulesUnixUtilsNormalizeResult)
+@objc(UTSSDKModulesUxUtilsNormalizeResult)
 @objcMembers
 public class NormalizeResult : NSObject, UTSObject {
     public var options: NormalizedOptions!
@@ -210,7 +211,7 @@ public class NormalizeResult : NSObject, UTSObject {
         self.degraded = obj["degraded"] as! [String]
     }
 }
-@objc(UTSSDKModulesUnixUtilsToastDefaults)
+@objc(UTSSDKModulesUxUtilsToastDefaults)
 @objcMembers
 public class ToastDefaults : NSObject, UTSObject {
     public var duration: NSNumber?
@@ -247,6 +248,283 @@ public typealias HideToast = () -> Void
 public typealias ShowToastAsync = (_ options: ToastOptions) -> UTSPromise<Void>
 public typealias ConfigureToast = (_ defaults: ToastDefaults) -> Void
 public typealias ShowToastQuick = (_ title: String) -> Void
+public typealias ModalErrorCode = NSNumber
+@objc(UTSSDKModulesUxUtilsModalResult)
+@objcMembers
+public class ModalResult : NSObject, UTSObject {
+    public var confirm: Bool = false
+    public var cancel: Bool = false
+    public var content: String?
+    public subscript(_ key: String) -> Any? {
+        get {
+            return utsSubscriptGetValue(key)
+        }
+        set {
+            switch(key){
+                case "confirm":
+                    self.confirm = try! utsSubscriptCheckValue(newValue)
+                case "cancel":
+                    self.cancel = try! utsSubscriptCheckValue(newValue)
+                case "content":
+                    self.content = try! utsSubscriptCheckValueIfPresent(newValue)
+                default:
+                    break
+            }
+        }
+    }
+    public override init() {
+        super.init()
+    }
+    public init(_ obj: UTSJSONObject) {
+        self.confirm = obj["confirm"] as! Bool
+        self.cancel = obj["cancel"] as! Bool
+        self.content = obj["content"] as! String?
+    }
+}
+@objc(UTSSDKModulesUxUtilsModalFail)
+@objcMembers
+public class ModalFail : NSObject, UTSObject {
+    public var errCode: ModalErrorCode!
+    public var errSubject: String!
+    public var errMsg: String!
+    public var param: String?
+    public var platform: String!
+    public subscript(_ key: String) -> Any? {
+        get {
+            return utsSubscriptGetValue(key)
+        }
+        set {
+            switch(key){
+                case "errCode":
+                    self.errCode = try! utsSubscriptCheckValue(newValue)
+                case "errSubject":
+                    self.errSubject = try! utsSubscriptCheckValue(newValue)
+                case "errMsg":
+                    self.errMsg = try! utsSubscriptCheckValue(newValue)
+                case "param":
+                    self.param = try! utsSubscriptCheckValueIfPresent(newValue)
+                case "platform":
+                    self.platform = try! utsSubscriptCheckValue(newValue)
+                default:
+                    break
+            }
+        }
+    }
+    public override init() {
+        super.init()
+    }
+    public init(_ obj: UTSJSONObject) {
+        self.errCode = obj["errCode"] as! ModalErrorCode
+        self.errSubject = obj["errSubject"] as! String
+        self.errMsg = obj["errMsg"] as! String
+        self.param = obj["param"] as! String?
+        self.platform = obj["platform"] as! String
+    }
+}
+@objc(UTSSDKModulesUxUtilsModalOptions)
+@objcMembers
+public class ModalOptions : NSObject, UTSObject {
+    public var title: String?
+    public var content: String?
+    public var showCancel: Bool = false
+    public var cancelText: String?
+    public var cancelColor: String?
+    public var confirmText: String?
+    public var confirmColor: String?
+    public var editable: Bool = false
+    public var placeholderText: String?
+    public var success: ((_ res: ModalResult) -> Void)?
+    public var fail: ((_ err: ModalFail) -> Void)?
+    public var complete: ((_ res: Any) -> Void)?
+    public subscript(_ key: String) -> Any? {
+        get {
+            return utsSubscriptGetValue(key)
+        }
+        set {
+            switch(key){
+                case "title":
+                    self.title = try! utsSubscriptCheckValueIfPresent(newValue)
+                case "content":
+                    self.content = try! utsSubscriptCheckValueIfPresent(newValue)
+                case "showCancel":
+                    self.showCancel = try! utsSubscriptCheckValue(newValue)
+                case "cancelText":
+                    self.cancelText = try! utsSubscriptCheckValueIfPresent(newValue)
+                case "cancelColor":
+                    self.cancelColor = try! utsSubscriptCheckValueIfPresent(newValue)
+                case "confirmText":
+                    self.confirmText = try! utsSubscriptCheckValueIfPresent(newValue)
+                case "confirmColor":
+                    self.confirmColor = try! utsSubscriptCheckValueIfPresent(newValue)
+                case "editable":
+                    self.editable = try! utsSubscriptCheckValue(newValue)
+                case "placeholderText":
+                    self.placeholderText = try! utsSubscriptCheckValueIfPresent(newValue)
+                case "success":
+                    self.success = try! utsSubscriptCheckValueIfPresent(newValue)
+                case "fail":
+                    self.fail = try! utsSubscriptCheckValueIfPresent(newValue)
+                case "complete":
+                    self.complete = try! utsSubscriptCheckValueIfPresent(newValue)
+                default:
+                    break
+            }
+        }
+    }
+    public override init() {
+        super.init()
+    }
+    public init(_ obj: UTSJSONObject) {
+        self.title = obj["title"] as! String?
+        self.content = obj["content"] as! String?
+        self.showCancel = (obj["showCancel"] as? Bool) ?? false
+        self.cancelText = obj["cancelText"] as! String?
+        self.cancelColor = obj["cancelColor"] as! String?
+        self.confirmText = obj["confirmText"] as! String?
+        self.confirmColor = obj["confirmColor"] as! String?
+        self.editable = (obj["editable"] as? Bool) ?? false
+        self.placeholderText = obj["placeholderText"] as! String?
+        self.success = obj["success"] as! ((_ res: ModalResult) -> Void)?
+        self.fail = obj["fail"] as! ((_ err: ModalFail) -> Void)?
+        self.complete = obj["complete"] as! ((_ res: Any) -> Void)?
+    }
+}
+@objc(UTSSDKModulesUxUtilsNormalizedModalOptions)
+@objcMembers
+public class NormalizedModalOptions : NSObject, UTSObject {
+    public var title: String!
+    public var content: String!
+    public var showCancel: Bool = false
+    public var cancelText: String!
+    public var cancelColor: String?
+    public var confirmText: String!
+    public var confirmColor: String?
+    public var editable: Bool = false
+    public var placeholderText: String?
+    public var success: ((_ res: ModalResult) -> Void)?
+    public var fail: ((_ err: ModalFail) -> Void)?
+    public var complete: ((_ res: Any) -> Void)?
+    public subscript(_ key: String) -> Any? {
+        get {
+            return utsSubscriptGetValue(key)
+        }
+        set {
+            switch(key){
+                case "title":
+                    self.title = try! utsSubscriptCheckValue(newValue)
+                case "content":
+                    self.content = try! utsSubscriptCheckValue(newValue)
+                case "showCancel":
+                    self.showCancel = try! utsSubscriptCheckValue(newValue)
+                case "cancelText":
+                    self.cancelText = try! utsSubscriptCheckValue(newValue)
+                case "cancelColor":
+                    self.cancelColor = try! utsSubscriptCheckValueIfPresent(newValue)
+                case "confirmText":
+                    self.confirmText = try! utsSubscriptCheckValue(newValue)
+                case "confirmColor":
+                    self.confirmColor = try! utsSubscriptCheckValueIfPresent(newValue)
+                case "editable":
+                    self.editable = try! utsSubscriptCheckValue(newValue)
+                case "placeholderText":
+                    self.placeholderText = try! utsSubscriptCheckValueIfPresent(newValue)
+                case "success":
+                    self.success = try! utsSubscriptCheckValueIfPresent(newValue)
+                case "fail":
+                    self.fail = try! utsSubscriptCheckValueIfPresent(newValue)
+                case "complete":
+                    self.complete = try! utsSubscriptCheckValueIfPresent(newValue)
+                default:
+                    break
+            }
+        }
+    }
+    public override init() {
+        super.init()
+    }
+    public init(_ obj: UTSJSONObject) {
+        self.title = obj["title"] as! String
+        self.content = obj["content"] as! String
+        self.showCancel = obj["showCancel"] as! Bool
+        self.cancelText = obj["cancelText"] as! String
+        self.cancelColor = obj["cancelColor"] as! String?
+        self.confirmText = obj["confirmText"] as! String
+        self.confirmColor = obj["confirmColor"] as! String?
+        self.editable = obj["editable"] as! Bool
+        self.placeholderText = obj["placeholderText"] as! String?
+        self.success = obj["success"] as! ((_ res: ModalResult) -> Void)?
+        self.fail = obj["fail"] as! ((_ err: ModalFail) -> Void)?
+        self.complete = obj["complete"] as! ((_ res: Any) -> Void)?
+    }
+}
+@objc(UTSSDKModulesUxUtilsNormalizeModalResult)
+@objcMembers
+public class NormalizeModalResult : NSObject, UTSObject {
+    public var options: NormalizedModalOptions!
+    public var degraded: [String]!
+    public subscript(_ key: String) -> Any? {
+        get {
+            return utsSubscriptGetValue(key)
+        }
+        set {
+            switch(key){
+                case "options":
+                    self.options = try! utsSubscriptCheckValue(newValue)
+                case "degraded":
+                    self.degraded = try! utsSubscriptCheckValue(newValue)
+                default:
+                    break
+            }
+        }
+    }
+    public override init() {
+        super.init()
+    }
+    public init(_ obj: UTSJSONObject) {
+        self.options = obj["options"] as! NormalizedModalOptions
+        self.degraded = obj["degraded"] as! [String]
+    }
+}
+@objc(UTSSDKModulesUxUtilsModalDefaults)
+@objcMembers
+public class ModalDefaults : NSObject, UTSObject {
+    public var cancelText: String?
+    public var confirmText: String?
+    public var cancelColor: String?
+    public var confirmColor: String?
+    public subscript(_ key: String) -> Any? {
+        get {
+            return utsSubscriptGetValue(key)
+        }
+        set {
+            switch(key){
+                case "cancelText":
+                    self.cancelText = try! utsSubscriptCheckValueIfPresent(newValue)
+                case "confirmText":
+                    self.confirmText = try! utsSubscriptCheckValueIfPresent(newValue)
+                case "cancelColor":
+                    self.cancelColor = try! utsSubscriptCheckValueIfPresent(newValue)
+                case "confirmColor":
+                    self.confirmColor = try! utsSubscriptCheckValueIfPresent(newValue)
+                default:
+                    break
+            }
+        }
+    }
+    public override init() {
+        super.init()
+    }
+    public init(_ obj: UTSJSONObject) {
+        self.cancelText = obj["cancelText"] as! String?
+        self.confirmText = obj["confirmText"] as! String?
+        self.cancelColor = obj["cancelColor"] as! String?
+        self.confirmColor = obj["confirmColor"] as! String?
+    }
+}
+public typealias ShowModal = (_ options: ModalOptions) -> Void
+public typealias ShowModalAsync = (_ options: ModalOptions) -> UTSPromise<ModalResult>
+public typealias ShowModalAlert = (_ title: String, _ content: String?) -> Void
+public typealias ConfigureModal = (_ defaults: ModalDefaults) -> Void
 public typealias ToastIcon__1 = String
 public typealias ToastPosition__1 = String
 public typealias ToastErrorCode__1 = NSNumber
@@ -698,6 +976,275 @@ public func showToastErrorImpl(_ title: String) -> Void {
 public func showToastInfoImpl(_ title: String) -> Void {
     quickShow(title, "none")
 }
+public typealias ModalErrorCode__1 = NSNumber
+public var MODAL_ERR_PARAM_INVALID: ModalErrorCode__1 = 1001
+public var MODAL_ERR_PLATFORM_UNSUPPORTED: ModalErrorCode__1 = 2001
+public var BUILTIN_CONFIRM_TEXT: String = "确定"
+public var BUILTIN_CANCEL_TEXT: String = "取消"
+public var MODAL_TEXT_MAX_LENGTH: NSNumber = 4
+public var MODAL_ERR_SUBJECT: String = "unix-utils:modal"
+public func isModalHexChar(_ c: String) -> Bool {
+    var code = c.charCodeAt(0)
+    if (code == nil) {
+        return false
+    }
+    if (code >= 48 && code <= 57) {
+        return true
+    }
+    if (code >= 65 && code <= 70) {
+        return true
+    }
+    if (code >= 97 && code <= 102) {
+        return true
+    }
+    return false
+}
+public func normalizeModalColor(_ value: String?, _ supportsAlpha: Bool, _ param: String, _ degraded: [String]) -> String? {
+    if (value == nil) {
+        return nil
+    }
+    if (!(value as! String).startsWith("#")) {
+        degraded.push(param)
+        return nil
+    }
+    var hex = (value as! String).substring(1)
+    var len = hex.length
+    if (len != 3 && len != 6 && len != 8) {
+        degraded.push(param)
+        return nil
+    }
+    do {
+        var i: NSNumber = 0
+        while(i < len){
+            if (!isModalHexChar(hex.charAt(i))) {
+                degraded.push(param)
+                return nil
+            }
+            i++
+        }
+    }
+    if (len == 3) {
+        var r = hex.charAt(0)
+        var g = hex.charAt(1)
+        var b = hex.charAt(2)
+        return "#" + r + r + g + g + b + b
+    }
+    if (len == 8) {
+        if (supportsAlpha) {
+            return value
+        }
+        degraded.push(param)
+        return "#" + hex.substring(0, 6)
+    }
+    return value
+}
+public var currentModalDefaults = ModalDefaults(UTSJSONObject([
+    "cancelText": nil,
+    "confirmText": nil,
+    "cancelColor": nil,
+    "confirmColor": nil
+]))
+public func configureModalImpl(_ defaults: ModalDefaults) -> Void {
+    currentModalDefaults = defaults
+}
+public func getModalDefaults() -> ModalDefaults {
+    return currentModalDefaults
+}
+public func truncateModalText(_ text: String, _ platform: String) -> String {
+    if (platform === "mp-weixin" || platform === "app-harmony") {
+        if (text.length > MODAL_TEXT_MAX_LENGTH) {
+            return text.substring(0, MODAL_TEXT_MAX_LENGTH)
+        }
+    }
+    return text
+}
+public func normalizeModal(_ options: ModalOptions) -> NormalizeModalResult {
+    var platform = getPlatform()
+    var defaults = getModalDefaults()
+    var degraded: [String] = []
+    var title: String = options.title != nil ? options.title as! String : ""
+    var content: String = options.content != nil ? options.content as! String : ""
+    var showCancel: Bool = options.showCancel != nil ? options.showCancel as! Bool : true
+    var editable: Bool = options.editable != nil ? options.editable as! Bool : false
+    var placeholderText: String? = options.placeholderText != nil ? options.placeholderText : nil
+    var rawCancelText = options.cancelText != nil ? options.cancelText as! String : defaults.cancelText != nil ? defaults.cancelText as! String : BUILTIN_CANCEL_TEXT
+    var rawConfirmText = options.confirmText != nil ? options.confirmText as! String : defaults.confirmText != nil ? defaults.confirmText as! String : BUILTIN_CONFIRM_TEXT
+    var cancelText: String = truncateModalText(rawCancelText, platform)
+    var confirmText: String = truncateModalText(rawConfirmText, platform)
+    var supportsAlpha = platform === "web"
+    var rawCancelColor = options.cancelColor != nil ? options.cancelColor as! String : defaults.cancelColor
+    var cancelColor: String? = normalizeModalColor(rawCancelColor, supportsAlpha, "cancelColor", degraded)
+    var rawConfirmColor = options.confirmColor != nil ? options.confirmColor as! String : defaults.confirmColor
+    var confirmColor: String? = normalizeModalColor(rawConfirmColor, supportsAlpha, "confirmColor", degraded)
+    var normalized = NormalizedModalOptions(UTSJSONObject([
+        "title": title,
+        "content": content,
+        "showCancel": showCancel,
+        "cancelText": cancelText,
+        "cancelColor": cancelColor,
+        "confirmText": confirmText,
+        "confirmColor": confirmColor,
+        "editable": editable,
+        "placeholderText": placeholderText,
+        "success": options.success,
+        "fail": options.fail,
+        "complete": options.complete
+    ]))
+    var result = NormalizeModalResult(UTSJSONObject([
+        "options": normalized,
+        "degraded": degraded
+    ]))
+    return result
+}
+public func showModalNative(_ options: NormalizedModalOptions) -> Void {
+    var platform = getPlatform()
+    DCloudUTSExtAPI.showModal(ShowModalOptions(UTSJSONObject([
+        "title": options.title,
+        "content": options.content,
+        "showCancel": options.showCancel,
+        "cancelText": options.cancelText,
+        "cancelColor": options.cancelColor,
+        "confirmText": options.confirmText,
+        "confirmColor": options.confirmColor,
+        "editable": options.editable,
+        "placeholderText": options.placeholderText,
+        "success": {
+        (res: ShowModalSuccess) -> Void in
+        if (options.success == nil) {
+            return
+        }
+        var confirm = res.confirm == true
+        var content: String? = nil
+        if (options.editable && confirm) {
+            var raw = res.content
+            content = raw != nil ? raw : ""
+        }
+        var r = ModalResult(UTSJSONObject([
+            "confirm": confirm,
+            "cancel": !confirm,
+            "content": content
+        ]))
+        (options.success as! (_ res: ModalResult) -> Void)(r)
+        },
+        "fail": {
+        (err: ShowModalFail) -> Void in
+        if (options.fail != nil) {
+            var f = ModalFail(UTSJSONObject([
+                "errCode": MODAL_ERR_PARAM_INVALID,
+                "errSubject": MODAL_ERR_SUBJECT,
+                "errMsg": err.errMsg,
+                "param": nil,
+                "platform": platform
+            ]))
+            (options.fail as! (_ err: ModalFail) -> Void)(f)
+        }
+        },
+        "complete": {
+        (res: Any) -> Void in
+        if (options.complete != nil) {
+            (options.complete as! (_ res: Any) -> Void)(res)
+        }
+        }
+    ])))
+}
+public func notifyModalDegraded(_ options: ModalOptions, _ degraded: [String]) -> Void {
+    if (degraded.length === 0 || options.fail == nil) {
+        return
+    }
+    var platform = getPlatform()
+    do {
+        var i: NSNumber = 0
+        while(i < degraded.length){
+            var f = ModalFail(UTSJSONObject([
+                "errCode": MODAL_ERR_PLATFORM_UNSUPPORTED,
+                "errSubject": MODAL_ERR_SUBJECT,
+                "errMsg": "参数在当前端不支持，已降级处理",
+                "param": degraded[i],
+                "platform": platform
+            ]))
+            (options.fail as! (_ err: ModalFail) -> Void)(f)
+            i++
+        }
+    }
+}
+public func notifyModalParamInvalid(_ options: ModalOptions) -> Void {
+    var f = ModalFail(UTSJSONObject([
+        "errCode": MODAL_ERR_PARAM_INVALID,
+        "errSubject": MODAL_ERR_SUBJECT,
+        "errMsg": "title 与 content 至少其一非空",
+        "param": "title",
+        "platform": getPlatform()
+    ]))
+    if (options.fail != nil) {
+        (options.fail as! (_ err: ModalFail) -> Void)(f)
+    }
+    if (options.complete != nil) {
+        (options.complete as! (_ res: Any) -> Void)(f)
+    }
+}
+public func dispatchModalShow(_ options: NormalizedModalOptions) -> Void {
+    showModalNative(options)
+}
+public func showModalImpl(_ options: ModalOptions) -> Void {
+    var title = options.title != nil ? options.title as! String : ""
+    var content = options.content != nil ? options.content as! String : ""
+    if (title.length === 0 && content.length === 0) {
+        notifyModalParamInvalid(options)
+        return
+    }
+    var result = normalizeModal(options)
+    notifyModalDegraded(options, result.degraded)
+    dispatchModalShow(result.options)
+}
+public func showModalAsyncImpl(_ options: ModalOptions) -> UTSPromise<ModalResult> {
+    return UTSPromise<ModalResult>({
+    (_ resolve, _ reject) -> Void in
+    var wrapped = ModalOptions(UTSJSONObject([
+        "title": options.title,
+        "content": options.content,
+        "showCancel": options.showCancel,
+        "cancelText": options.cancelText,
+        "cancelColor": options.cancelColor,
+        "confirmText": options.confirmText,
+        "confirmColor": options.confirmColor,
+        "editable": options.editable,
+        "placeholderText": options.placeholderText,
+        "success": {
+        (_ res: ModalResult) -> Void in
+        if (options.success != nil) {
+            (options.success as! (_ res: ModalResult) -> Void)(res)
+        }
+        resolve(res)
+        },
+        "fail": {
+        (_ err: ModalFail) -> Void in
+        if (options.fail != nil) {
+            (options.fail as! (_ err: ModalFail) -> Void)(err)
+        }
+        reject(err)
+        },
+        "complete": options.complete
+    ]))
+    showModalImpl(wrapped)
+    })
+}
+public func showModalAlertImpl(_ title: String, _ content: String?) -> Void {
+    var options = ModalOptions(UTSJSONObject([
+        "title": title,
+        "content": content,
+        "showCancel": false,
+        "cancelText": nil,
+        "cancelColor": nil,
+        "confirmText": nil,
+        "confirmColor": nil,
+        "editable": false,
+        "placeholderText": nil,
+        "success": nil,
+        "fail": nil,
+        "complete": nil
+    ]))
+    showModalImpl(options)
+}
 public var DEFAULT_DURATION: NSNumber = 1500
 public var DEFAULT_ICON: ToastIcon = "success"
 public var DEFAULT_MASK: Bool = false
@@ -731,7 +1278,27 @@ public var showToastInfo: ShowToastQuick = {
 (_ title: String) -> Void in
 showToastInfoImpl(title)
 }
-@objc(UTSSDKModulesUnixUtilsToastOptionsJSONObject)
+public var DEFAULT_CONFIRM_TEXT: String = "确定"
+public var DEFAULT_CANCEL_TEXT: String = "取消"
+public var DEFAULT_CONFIRM_COLOR: String = "#007aff"
+public var DEFAULT_CANCEL_COLOR: String = "#000000"
+public var showModal: ShowModal = {
+(_ options: ModalOptions) -> Void in
+showModalImpl(options)
+}
+public var showModalAsync: ShowModalAsync = {
+(_ options: ModalOptions) -> UTSPromise<ModalResult> in
+return showModalAsyncImpl(options)
+}
+public var showModalAlert: ShowModalAlert = {
+(_ title: String, _ content: String?) -> Void in
+showModalAlertImpl(title, content)
+}
+public var configureModal: ConfigureModal = {
+(_ defaults: ModalDefaults) -> Void in
+configureModalImpl(defaults)
+}
+@objc(UTSSDKModulesUxUtilsToastOptionsJSONObject)
 @objcMembers
 public class ToastOptionsJSONObject : NSObject {
     public var title: String!
@@ -744,12 +1311,36 @@ public class ToastOptionsJSONObject : NSObject {
     public var fail: UTSCallback?
     public var complete: UTSCallback?
 }
-@objc(UTSSDKModulesUnixUtilsToastDefaultsJSONObject)
+@objc(UTSSDKModulesUxUtilsToastDefaultsJSONObject)
 @objcMembers
 public class ToastDefaultsJSONObject : NSObject {
     public var duration: NSNumber?
     public var icon: ToastIcon?
     public var mask: Bool = false
+}
+@objc(UTSSDKModulesUxUtilsModalOptionsJSONObject)
+@objcMembers
+public class ModalOptionsJSONObject : NSObject {
+    public var title: String?
+    public var content: String?
+    public var showCancel: Bool = false
+    public var cancelText: String?
+    public var cancelColor: String?
+    public var confirmText: String?
+    public var confirmColor: String?
+    public var editable: Bool = false
+    public var placeholderText: String?
+    public var success: UTSCallback?
+    public var fail: UTSCallback?
+    public var complete: UTSCallback?
+}
+@objc(UTSSDKModulesUxUtilsModalDefaultsJSONObject)
+@objcMembers
+public class ModalDefaultsJSONObject : NSObject {
+    public var cancelText: String?
+    public var confirmText: String?
+    public var cancelColor: String?
+    public var confirmColor: String?
 }
 public func showToastByJs(_ options: ToastOptionsJSONObject) -> Void {
     return showToast(ToastOptions(UTSJSONObject([
@@ -820,9 +1411,76 @@ public func showToastErrorByJs(_ title: String) -> Void {
 public func showToastInfoByJs(_ title: String) -> Void {
     return showToastInfo(title)
 }
-@objc(UTSSDKModulesUnixUtilsIndexSwift)
+public func showModalByJs(_ options: ModalOptionsJSONObject) -> Void {
+    return showModal(ModalOptions(UTSJSONObject([
+        "title": options.title,
+        "content": options.content,
+        "showCancel": options.showCancel,
+        "cancelText": options.cancelText,
+        "cancelColor": options.cancelColor,
+        "confirmText": options.confirmText,
+        "confirmColor": options.confirmColor,
+        "editable": options.editable,
+        "placeholderText": options.placeholderText,
+        "success": {
+        (res: ModalResult) -> Void in
+        options.success?(res)
+        },
+        "fail": {
+        (err: ModalFail) -> Void in
+        options.fail?(err)
+        },
+        "complete": {
+        (res: Any) -> Void in
+        options.complete?(res)
+        }
+    ])))
+}
+public func showModalAsyncByJs(_ options: ModalOptionsJSONObject, utsCompletionHandler: @escaping (_ res: Any?, _ err: Any?) -> Void) {
+    showModalAsync(ModalOptions(UTSJSONObject([
+        "title": options.title,
+        "content": options.content,
+        "showCancel": options.showCancel,
+        "cancelText": options.cancelText,
+        "cancelColor": options.cancelColor,
+        "confirmText": options.confirmText,
+        "confirmColor": options.confirmColor,
+        "editable": options.editable,
+        "placeholderText": options.placeholderText,
+        "success": {
+        (res: ModalResult) -> Void in
+        options.success?(res)
+        },
+        "fail": {
+        (err: ModalFail) -> Void in
+        options.fail?(err)
+        },
+        "complete": {
+        (res: Any) -> Void in
+        options.complete?(res)
+        }
+    ]))).then({
+    (res) -> Void in
+    utsCompletionHandler(res, nil)
+    }).catch({
+    (err) -> Void in
+    utsCompletionHandler(nil, err)
+    })
+}
+public func showModalAlertByJs(_ title: String, _ content: String?) -> Void {
+    return showModalAlert(title, content)
+}
+public func configureModalByJs(_ defaults: ModalDefaultsJSONObject) -> Void {
+    return configureModal(ModalDefaults(UTSJSONObject([
+        "cancelText": defaults.cancelText,
+        "confirmText": defaults.confirmText,
+        "cancelColor": defaults.cancelColor,
+        "confirmColor": defaults.confirmColor
+    ])))
+}
+@objc(UTSSDKModulesUxUtilsIndexSwift)
 @objcMembers
-public class UTSSDKModulesUnixUtilsIndexSwift : NSObject {
+public class UTSSDKModulesUxUtilsIndexSwift : NSObject {
     public static func s_showToastByJs(_ options: ToastOptionsJSONObject) -> Void {
         return showToastByJs(options)
     }
@@ -843,5 +1501,17 @@ public class UTSSDKModulesUnixUtilsIndexSwift : NSObject {
     }
     public static func s_showToastInfoByJs(_ title: String) -> Void {
         return showToastInfoByJs(title)
+    }
+    public static func s_showModalByJs(_ options: ModalOptionsJSONObject) -> Void {
+        return showModalByJs(options)
+    }
+    public static func s_showModalAsyncByJs(_ options: ModalOptionsJSONObject, utsCompletionHandler: @escaping (_ res: Any?, _ err: Any?) -> Void) {
+        return showModalAsyncByJs(options, utsCompletionHandler: utsCompletionHandler)
+    }
+    public static func s_showModalAlertByJs(_ title: String, _ content: String?) -> Void {
+        return showModalAlertByJs(title, content)
+    }
+    public static func s_configureModalByJs(_ defaults: ModalDefaultsJSONObject) -> Void {
+        return configureModalByJs(defaults)
     }
 }

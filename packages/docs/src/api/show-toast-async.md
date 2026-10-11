@@ -1,6 +1,6 @@
 # showToastAsync()
 
-`showToast()` 的 Promise 式版本：成功 resolve，失败 reject 结构化 [ToastFail](/api/type-toast-fail)。内部复用同一归一化与分发链路，仅包装回调。
+`showToast()` 的 Promise 式版本：成功 resolve，失败 reject [ToastFail](/api/type-toast-fail) 结构的 JSON 字符串（全端统一，业务侧 `JSON.parse<ToastFail>(err as string)` 还原）。内部复用同一归一化与分发链路，仅包装回调。
 
 ## 类型
 
@@ -16,8 +16,8 @@ export const showToastAsync: (options: ToastOptions) => Promise<void>
 
 ## 返回
 
-- **resolve**：toast 正常显示（含参数降级场景——降级是信息级通知，不 reject）；
-- **reject**：参数错误等真正失败，reject 值为 `ToastFail` 结构。
+- **resolve**：toast 正常显示；
+- **reject**：调用链路上任何 `fail` 回调触发都会 reject——参数错误（errCode 1001）与参数降级（errCode 2001）均会 reject，reject 值为 `ToastFail` 结构的 JSON 字符串（全端统一）。
 
 ## 示例
 
@@ -28,11 +28,14 @@ try {
 	await showToastAsync({ title: '加载中', icon: 'loading' })
 	// toast 已显示
 } catch (err) {
-	console.error(`toast 失败：errCode=${err.errCode} param=${err.param} platform=${err.platform}`)
+	const fail = JSON.parse<ToastFail>(err as string)
+	if (fail != null) {
+		console.error(`toast 失败：errCode=${fail.errCode} param=${fail.param} platform=${fail.platform}`)
+	}
 }
 ```
 
 ## 注意事项
 
-- 参数降级（如微信端传 `position: 'top'`）走 `fail` 回调语义时**不会 reject**——降级后 toast 照常显示，属信息级通知；需要感知降级时用回调式 [showToast()](/api/show-toast) 读取 `fail` 回调；
+- **降级也会 reject**：参数降级（如微信端传 `position: 'top'`，errCode 2001）触发 `fail` 回调时 Promise 同样 reject——降级后 toast 照常显示，属信息级通知，业务捕获后可选择忽略；不想处理降级异常时，用回调式 [showToast()](/api/show-toast) 读取 `fail` 回调；
 - UTS 全端支持 Promise，五端可用。

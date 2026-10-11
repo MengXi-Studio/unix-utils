@@ -56,6 +56,7 @@ export const zhConfig: LocaleSpecificConfig<DefaultTheme.Config> = {
 					text: '核心功能',
 					items: [
 						{ text: 'Toast 提示', link: '/guide/toast' },
+						{ text: 'Modal 弹窗', link: '/guide/modal' },
 						{ text: '通道架构与降级', link: '/guide/channels' }
 					]
 				},
@@ -66,7 +67,7 @@ export const zhConfig: LocaleSpecificConfig<DefaultTheme.Config> = {
 			],
 			'/api/': [
 				{
-					text: '核心 API',
+					text: 'Toast API',
 					items: [
 						{ text: 'showToast()', link: '/api/show-toast' },
 						{ text: 'showToastAsync()', link: '/api/show-toast-async' },
@@ -76,11 +77,22 @@ export const zhConfig: LocaleSpecificConfig<DefaultTheme.Config> = {
 					]
 				},
 				{
+					text: 'Modal API',
+					items: [
+						{ text: 'showModal()', link: '/api/show-modal' },
+						{ text: 'showModalAsync()', link: '/api/show-modal-async' },
+						{ text: 'showModalAlert()', link: '/api/show-modal-alert' },
+						{ text: 'configureModal()', link: '/api/configure-modal' }
+					]
+				},
+				{
 					text: '类型',
 					items: [
 						{ text: 'ToastOptions', link: '/api/type-toast-options' },
 						{ text: 'ToastFail', link: '/api/type-toast-fail' },
-						{ text: 'ToastIcon / ToastPosition / ToastErrorCode', link: '/api/type-enums' }
+						{ text: 'ToastIcon / ToastPosition / ToastErrorCode', link: '/api/type-enums' },
+						{ text: 'ModalOptions', link: '/api/type-modal-options' },
+						{ text: 'ModalFail', link: '/api/type-modal-fail' }
 					]
 				}
 			]

@@ -1,6 +1,6 @@
 # Getting Started
 
-This page walks you through the toast module of unix-utils: showing your first toast, handling failures, and using the shortcut APIs.
+This page walks you through the two modules of unix-utils: showing your first toast, popping up your first modal dialog, handling failures, and using the shortcut APIs.
 
 ## Import
 
@@ -75,8 +75,52 @@ configureToast({
 
 Passing `null` for a field means keeping the library's built-in default (1500ms / `'success'` / `false`). See [configureToast()](/en/api/configure-toast) for details.
 
+## Show Your First Modal Dialog (modal module)
+
+```ts
+import { showModal } from '@/uni_modules/unix-utils'
+
+// Mirrors uni.showModal, zero migration cost
+showModal({
+	title: '删除确认',
+	content: '删除后不可恢复，是否继续？',
+	confirmColor: '#ff0000',
+	success: (res) => {
+		if (res.confirm) doDelete() // confirm / cancel are always present and mutually exclusive
+	}
+})
+```
+
+## modal's Promise Style, alert Semantics, and Global Defaults
+
+```ts
+import {
+	showModalAsync,
+	showModalAlert,
+	configureModal
+} from '@/uni_modules/unix-utils'
+
+// Promise style: canceling does not count as failure (resolves); failures reject with a JSON string of the ModalFail structure (unified across all platforms, restored via JSON.parse<ModalFail>)
+const res = await showModalAsync({ title: '保存修改', content: '是否保存当前修改？' })
+if (res.confirm) save()
+
+// alert semantics (single confirm button)
+showModalAlert('提示', '操作已完成')
+
+// Global defaults: passing null for a field keeps the library built-in default / platform default
+configureModal({
+	confirmText: '知道了',
+	confirmColor: '#00aa00',
+	cancelText: null,
+	cancelColor: null
+})
+```
+
+See [showModal()](/en/api/show-modal) and [Modal](./modal) for details.
+
 ## Next Steps
 
 - How parameters like `icon` / `position` behave on each platform: [Toast](./toast);
+- How modal features like button colors and editable input behave: [Modal](./modal);
 - When fallbacks happen and how to perceive them: [Channel Architecture and Fallback](./channels);
-- The complete parameter table: [ToastOptions](/en/api/type-toast-options).
+- The complete parameter tables: [ToastOptions](/en/api/type-toast-options) / [ModalOptions](/en/api/type-modal-options).

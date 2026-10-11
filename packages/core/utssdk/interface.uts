@@ -122,3 +122,112 @@ export type ShowToastAsync = (options: ToastOptions) => Promise<void>
 export type ConfigureToast = (defaults: ToastDefaults) => void
 /** showToastSuccess / showToastError / showToastInfo 函数类型 */
 export type ShowToastQuick = (title: string) => void
+
+/* ============================================================
+ * modal（uni.showModal 全端兼容封装）
+ * 类型与 toast 对称：字面量联合跨 uts-proxy 边界，实现层全字段判空兜底
+ * ============================================================ */
+
+/** modal 失败码（数字字面量联合，对齐官方错误码模式） */
+export type ModalErrorCode = 1001 | 2001
+
+/** showModal 成功回调结果（库内归一化保证 confirm / cancel 恒存在且互斥） */
+export type ModalResult = {
+	/** 是否点击了确认按钮 */
+	confirm: boolean
+	/** 是否点击了取消按钮 / 蒙层关闭 */
+	cancel: boolean
+	/** editable 为 true 时用户输入的文本；非 editable 恒 null */
+	content: string | null
+}
+
+/** 失败结构：对齐 ToastFail 范式 */
+export type ModalFail = {
+	/** 错误码 */
+	errCode: ModalErrorCode
+	/** 固定主题，便于业务过滤 */
+	errSubject: string
+	/** 错误描述 */
+	errMsg: string
+	/** 触发问题的参数名（如 'confirmColor' / 'title'），无则 null */
+	param: string | null
+	/** 当前端标识（'app-android' / 'web' / 'mp-weixin' / ...） */
+	platform: string
+}
+
+/**
+ * showModal 选项：对齐 uni.showModal 全参数。
+ *
+ * 除回调外均为可选字段（可选字段代理层才生成 null-safe 编码，
+ * 必填字段会做非空强转，业务漏传即 NPE），实现层统一判空兜底。
+ */
+export type ModalOptions = {
+	/** 标题；与 content 至少其一非空，均空 fail 1001 */
+	title?: string | null
+	/** 内容 */
+	content?: string | null
+	/** 是否显示取消按钮，默认 true */
+	showCancel?: boolean
+	/** 取消按钮文案，默认 '取消'；微信 / 鸿蒙超 4 字符库内截断 */
+	cancelText?: string | null
+	/** 取消按钮颜色（16 进制），非法值降级平台默认色 */
+	cancelColor?: string | null
+	/** 确认按钮文案，默认 '确定'；微信 / 鸿蒙超 4 字符库内截断 */
+	confirmText?: string | null
+	/** 确认按钮颜色（16 进制），非法值降级平台默认色 */
+	confirmColor?: string | null
+	/** 是否可输入，默认 false */
+	editable?: boolean
+	/** 输入框占位文本（editable 为 true 时生效） */
+	placeholderText?: string | null
+	/** 成功回调 */
+	success?: ((res: ModalResult) => void) | null
+	/** 失败回调（含降级通知） */
+	fail?: ((err: ModalFail) => void) | null
+	/** 结束回调（成功或失败都执行） */
+	complete?: ((res: any) => void) | null
+}
+
+/** 归一化后的内部选项（所有字段均有确定值；颜色 null = 透传平台默认色） */
+export type NormalizedModalOptions = {
+	title: string
+	content: string
+	showCancel: boolean
+	cancelText: string
+	cancelColor: string | null
+	confirmText: string
+	confirmColor: string | null
+	editable: boolean
+	placeholderText: string | null
+	success: ((res: ModalResult) => void) | null
+	fail: ((err: ModalFail) => void) | null
+	complete: ((res: any) => void) | null
+}
+
+/** modal 归一化结果：归一化后的选项 + 发生降级的参数名列表 */
+export type NormalizeModalResult = {
+	options: NormalizedModalOptions
+	/** 发生降级的参数名列表（如 ['confirmColor']） */
+	degraded: string[]
+}
+
+/** 全局默认配置（configureModal 入参；字段为 null 表示沿用库内置默认 / 平台默认） */
+export type ModalDefaults = {
+	/** 默认取消按钮文案 */
+	cancelText: string | null
+	/** 默认确认按钮文案 */
+	confirmText: string | null
+	/** 默认取消按钮颜色 */
+	cancelColor: string | null
+	/** 默认确认按钮颜色 */
+	confirmColor: string | null
+}
+
+/** showModal 函数类型 */
+export type ShowModal = (options: ModalOptions) => void
+/** showModalAsync 函数类型 */
+export type ShowModalAsync = (options: ModalOptions) => Promise<ModalResult>
+/** showModalAlert 函数类型 */
+export type ShowModalAlert = (title: string, content: string | null) => void
+/** configureModal 函数类型 */
+export type ConfigureModal = (defaults: ModalDefaults) => void

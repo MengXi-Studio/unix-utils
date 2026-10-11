@@ -13,6 +13,15 @@ The core strategy of unix-utils is **per-platform mixed implementation**: each p
 
 > Why the App side bypasses `uni.showToast` and attaches to windows directly: the native channel's `position` only supports `bottom` on Android, icon values are not aligned, and lifecycle binding is inconsistent — these presentation-layer differences can only be eliminated by window-level self-drawing. Meanwhile, the Android system `Toast` does not support icon/mask, and iOS has no system Toast API at all, so direct window attachment with self-drawing is the only path on App where "every parameter takes effect".
 
+The modal module (since v0.2) has a different channel split:
+
+| Platform | Channel | Implementation |
+| --- | --- | --- |
+| App-Android / App-iOS / WeChat / HarmonyOS | Native `uni.showModal` | Direct call + in-library normalization (color validation and alpha stripping, restricted-platform text truncation, return value `confirm` / `cancel` always present and mutually exclusive) |
+| Web | Self-drawn DOM singleton | Mask + centered card + button row + `input` (editable); tapping the mask does not close; text and alpha colors fully effective |
+
+> Why modal does not do App-side window-attachment self-drawing: the parameters of the `uni.showModal` native channel are basically aligned in semantics across platforms, and the residual differences (alpha colors, text truncation, missing return-value fields) can all be smoothed out in the in-library normalization layer — the benefit of self-drawing does not outweigh its cost, so the App side reuses the native channel. The Web side uses self-drawing because there is no usable (or controllable) `uni.showModal` on Web, while DOM self-drawing can fully support alpha colors and untruncated text.
+
 ## Dispatch Flow
 
 ```
@@ -51,6 +60,24 @@ Behavior of each parameter across the three channels (✅ fully effective / ⚠�
 | Consecutive calls | ✅ Window reused with content replaced | ✅ Singleton replaced | ✅ Replaced |
 | Lifecycle | ✅ System-window level, survives across pages | ✅ Survives within the SPA | Bound to the page (disappears when the page closes) |
 
+## Modal Normalization Matrix
+
+Behavior of each modal parameter across the two channels (✅ fully effective / ⚠️ falls back with a trace):
+
+| Parameter | App / WeChat / HarmonyOS (native channel) | Web (self-drawn channel) |
+| --- | --- | --- |
+| `title` / `content` | ✅ Rendered natively | ✅ Really rendered (written via `textContent` to avoid XSS) |
+| `showCancel` | ✅ | ✅ |
+| `cancelText` / `confirmText` | ⚠️ Silently truncated beyond 4 characters on WeChat / HarmonyOS (full display on App) | ✅ Full display |
+| `cancelColor` / `confirmColor` = `#RGB` / `#RRGGBB` | ✅ (`#RGB` expanded to `#RRGGBB`) | ✅ |
+| `cancelColor` / `confirmColor` = `#RRGGBBAA` | ⚠️ Alpha stripped then applied, errCode 2001 | ✅ Alpha preserved |
+| Invalid color values | ⚠️ Falls back to the platform default color, errCode 2001 | ⚠️ Falls back to the built-in default color, errCode 2001 |
+| `editable` | ✅ (`content` doubles as the input's initial value) | ✅ Really renders an `<input>` (`content` shows as text; the input starts empty) |
+| `placeholderText` | ✅ | ✅ |
+| Return value `confirm` / `cancel` | ✅ Always present and mutually exclusive via in-library normalization | ✅ |
+| Tapping the mask | Native behavior (does not close on any platform) | Does not close (only buttons close it) |
+| Lifecycle | Page-level modal, blocks interaction | DOM singleton, survives within the SPA |
+
 ## Fallback Perception: the fail Callback
 
 Every fallback returns structured [ToastFail](/en/api/type-toast-fail) through the `fail` callback, so business code can precisely perceive "which parameter, which platform":
@@ -71,6 +98,23 @@ showToast({
 
 - errCode `2001` (PLATFORM_UNSUPPORTED) is an **informational** notice: the parameter has fallen back and the toast still shows as usual; business code may choose to ignore it;
 - errCode `1001` (PARAM_INVALID) is a genuine parameter error.
+
+modal likewise returns the structured [ModalFail](/en/api/type-modal-fail) through the `fail` callback (`errSubject: 'unix-utils:modal'`):
+
+```ts
+showModal({
+	title: '提示',
+	content: '继续操作',
+	confirmColor: 'blue', // invalid color: named colors are not supported by native channels
+	fail: (err) => {
+		// errCode: 2001 (PLATFORM_UNSUPPORTED)
+		// param: 'confirmColor' — the parameter name that triggered the fallback
+		// platform: 'mp-weixin' — the current platform identifier
+	}
+})
+```
+
+modal specifics: when both `title` and `content` are empty, it fails with 1001 (`param: 'title'`) and no dialog is shown; under the Promise-based [showModalAsync](/en/api/show-modal-async), a fallback (2001) also rejects (the rejection value is a JSON string of the `ModalFail` structure, unified across all platforms; business code restores it via `JSON.parse<ModalFail>(err as string)`).
 
 ## Three Principles for the Presentation Layer
 
