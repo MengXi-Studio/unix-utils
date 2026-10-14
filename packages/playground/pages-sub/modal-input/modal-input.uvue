@@ -1,0 +1,80 @@
+<template>
+	<scroll-view style="flex:1">
+		<view class="container">
+			<view class="intro">
+				<text class="intro-title">功能说明</text>
+				<text class="intro-text">editable 输入模式（对齐微信官方语义）：content 作为输入框初始值，自动聚焦且光标定位在末尾；confirm 时 success.content 携带输入内容，cancel 时 content 为 null。</text>
+			</view>
+
+			<text class="section">用例</text>
+			<view class="row">
+				<button size="mini" @click="t06Editable">06 editable + placeholder</button>
+				<button size="mini" @click="t18Preset">18 初始值 + 光标末尾</button>
+			</view>
+
+			<view class="logs">
+				<view class="logs-head">
+					<text class="logs-title">运行日志</text>
+					<button size="mini" @click="clearLog">清空</button>
+				</view>
+				<text v-for="(line, index) in logs" :key="index" class="log">{{ line }}</text>
+			</view>
+		</view>
+	</scroll-view>
+</template>
+
+<script setup lang="uts">
+	// 页面声明宏：编译期由 @meng-xi/unix-router/vite-plugin 剥离，驱动 pages.json 与路由表生成
+	defineUniPage({
+		title: '输入能力',
+		name: 'modal-input'
+	})
+	import { showModal } from '@/uni_modules/ux-utils'
+	import { describeResult, describeFail } from '@/common/test-utils.uts'
+
+	const logs = reactive<string[]>([])
+
+	function log(tag: string, msg: string): void {
+		const line = '[' + tag + '] ' + msg
+		logs.unshift(line)
+		if (logs.length > 200) {
+			logs.splice(200, logs.length - 200)
+		}
+		console.log(line)
+	}
+
+	function clearLog(): void {
+		logs.splice(0, logs.length)
+	}
+
+	/* ===== 06 editable + placeholderText ===== */
+	function t06Editable(): void {
+		showModal({
+			title: '可输入弹窗',
+			content: '请输入内容',
+			editable: true,
+			placeholderText: '请在此输入',
+			success: (res) => {
+				log('06', describeResult(res))
+			},
+			fail: (err) => {
+				log('06', 'fail ' + describeFail(err))
+			}
+		})
+	}
+
+	/* ===== 18 editable 初始值回显 + 光标末尾：直接点确认应原样返回 ===== */
+	function t18Preset(): void {
+		showModal({
+			title: '输入框初始值',
+			content: '预设的初始输入值',
+			editable: true,
+			success: (res) => {
+				log('18', describeResult(res))
+			},
+			fail: (err) => {
+				log('18', 'fail ' + describeFail(err))
+			}
+		})
+	}
+</script>

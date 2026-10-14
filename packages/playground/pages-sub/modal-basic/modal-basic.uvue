@@ -1,0 +1,95 @@
+<template>
+	<scroll-view style="flex:1">
+		<view class="container">
+			<view class="intro">
+				<text class="intro-title">功能说明</text>
+				<text class="intro-text">showModal 默认双按钮 / showCancel=false 单按钮，以及 showModalAlert 快捷 API（单确定按钮，content 可为 null）。success 返回 confirm / cancel 恒双字段互斥。</text>
+			</view>
+
+			<text class="section">用例</text>
+			<view class="row">
+				<button size="mini" @click="t01Default">01 默认双按钮</button>
+				<button size="mini" @click="t08Single">08 单按钮</button>
+				<button size="mini" @click="t12Alert">12 alert</button>
+				<button size="mini" @click="t13AlertNull">13 alert 无内容</button>
+			</view>
+
+			<view class="logs">
+				<view class="logs-head">
+					<text class="logs-title">运行日志</text>
+					<button size="mini" @click="clearLog">清空</button>
+				</view>
+				<text v-for="(line, index) in logs" :key="index" class="log">{{ line }}</text>
+			</view>
+		</view>
+	</scroll-view>
+</template>
+
+<script setup lang="uts">
+	// 页面声明宏：编译期由 @meng-xi/unix-router/vite-plugin 剥离，驱动 pages.json 与路由表生成
+	defineUniPage({
+		title: '基础弹窗',
+		name: 'modal-basic'
+	})
+	import { showModal, showModalAlert } from '@/uni_modules/ux-utils'
+	import { describeResult, describeFail } from '@/common/test-utils.uts'
+
+	const logs = reactive<string[]>([])
+
+	function log(tag: string, msg: string): void {
+		const line = '[' + tag + '] ' + msg
+		logs.unshift(line)
+		if (logs.length > 200) {
+			logs.splice(200, logs.length - 200)
+		}
+		console.log(line)
+	}
+
+	function clearLog(): void {
+		logs.splice(0, logs.length)
+	}
+
+	/* ===== 01 默认双按钮 ===== */
+	function t01Default(): void {
+		showModal({
+			title: '默认弹窗',
+			content: '这是 ux-utils showModal 的默认双按钮弹窗',
+			success: (res) => {
+				log('01', describeResult(res))
+			},
+			fail: (err) => {
+				log('01', 'fail ' + describeFail(err))
+			},
+			complete: () => {
+				log('01', 'complete 已触发')
+			}
+		})
+	}
+
+	/* ===== 08 showCancel=false 单确定按钮 ===== */
+	function t08Single(): void {
+		showModal({
+			title: '单按钮',
+			content: '仅一个确定按钮',
+			showCancel: false,
+			success: (res) => {
+				log('08', describeResult(res))
+			},
+			fail: (err) => {
+				log('08', 'fail ' + describeFail(err))
+			}
+		})
+	}
+
+	/* ===== 12 showModalAlert 单确定按钮 ===== */
+	function t12Alert(): void {
+		showModalAlert('提示', '这是 showModalAlert 的内容')
+		log('12', 'showModalAlert 已调用')
+	}
+
+	/* ===== 13 showModalAlert 无内容（content 传 null） ===== */
+	function t13AlertNull(): void {
+		showModalAlert('仅标题提示', null)
+		log('13', 'showModalAlert(null content) 已调用，内容区不塌陷')
+	}
+</script>

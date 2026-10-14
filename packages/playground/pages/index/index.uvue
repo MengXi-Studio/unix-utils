@@ -1,108 +1,166 @@
 <template>
-	<view class="container">
-		<button @click="onModalProbe">showModal 实测</button>
-		<button @click="onModalDemo">modal 功能测试</button>
-		<button @click="onSuccess">成功</button>
-		<button @click="onError">错误</button>
-		<button @click="onInfo">信息</button>
-		<button @click="onWarning">警告</button>
-		<button @click="onTop">顶部</button>
-		<button @click="onMask">蒙层</button>
-		<button @click="onHide">手动隐藏</button>
-		<button @click="onToastAsyncFail">async 降级 reject</button>
-	</view>
+	<scroll-view style="flex:1">
+		<view class="container">
+			<view class="banner">
+				<text class="banner-title">@meng-xi/unix-utils</text>
+				<text class="banner-sub">为 uni-app x 提供 showToast / showModal 全端兼容工具库 · 功能验证示例</text>
+			</view>
+
+			<text class="group-title">showToast</text>
+			<view class="cell-group">
+				<RouterLink to="pages-sub/toast-basic/toast-basic" class="cell">
+					<view class="cell-main">
+						<text class="cell-title">快捷 API</text>
+						<text class="cell-desc">showToastSuccess / Error / Info 与完整参数（icon / mask / duration）</text>
+					</view>
+					<text class="cell-arrow">›</text>
+				</RouterLink>
+				<RouterLink to="pages-sub/toast-interact/toast-interact" class="cell">
+					<view class="cell-main">
+						<text class="cell-title">交互与降级</text>
+						<text class="cell-desc">顶部展示 / 蒙层拦截 / 手动隐藏 / async 失败契约</text>
+					</view>
+					<text class="cell-arrow">›</text>
+				</RouterLink>
+			</view>
+
+			<text class="group-title">showModal</text>
+			<view class="cell-group">
+				<RouterLink to="pages-sub/modal-basic/modal-basic" class="cell">
+					<view class="cell-main">
+						<text class="cell-title">基础弹窗</text>
+						<text class="cell-desc">默认双按钮 / 单按钮 / showModalAlert 快捷 API</text>
+					</view>
+					<text class="cell-arrow">›</text>
+				</RouterLink>
+				<RouterLink to="pages-sub/modal-async/modal-async" class="cell">
+					<view class="cell-main">
+						<text class="cell-title">Promise 异步</text>
+						<text class="cell-desc">resolve 交互结果 / reject 失败契约（ModalFail JSON）</text>
+					</view>
+					<text class="cell-arrow">›</text>
+				</RouterLink>
+				<RouterLink to="pages-sub/modal-color/modal-color" class="cell">
+					<view class="cell-main">
+						<text class="cell-title">颜色体系</text>
+						<text class="cell-desc">自定义颜色 / 非法值降级 / #RRGGBBAA alpha 生效</text>
+					</view>
+					<text class="cell-arrow">›</text>
+				</RouterLink>
+				<RouterLink to="pages-sub/modal-text/modal-text" class="cell">
+					<view class="cell-main">
+						<text class="cell-title">文案与滚动</text>
+						<text class="cell-desc">按钮文案截断抹平 / 正文超 60% 屏高限高滚动</text>
+					</view>
+					<text class="cell-arrow">›</text>
+				</RouterLink>
+				<RouterLink to="pages-sub/modal-input/modal-input" class="cell">
+					<view class="cell-main">
+						<text class="cell-title">输入能力</text>
+						<text class="cell-desc">editable + placeholder / 初始值回显与光标末尾</text>
+					</view>
+					<text class="cell-arrow">›</text>
+				</RouterLink>
+				<RouterLink to="pages-sub/modal-interact/modal-interact" class="cell">
+					<view class="cell-main">
+						<text class="cell-title">交互行为</text>
+						<text class="cell-desc">返回键关闭 / 蒙层不关闭 / 连续调用后替前</text>
+					</view>
+					<text class="cell-arrow">›</text>
+				</RouterLink>
+				<RouterLink to="pages-sub/modal-config/modal-config" class="cell">
+					<view class="cell-main">
+						<text class="cell-title">全局配置</text>
+						<text class="cell-desc">configureModal 设置 / 验证 / 重置</text>
+					</view>
+					<text class="cell-arrow">›</text>
+				</RouterLink>
+				<RouterLink to="pages-sub/modal-error/modal-error" class="cell">
+					<view class="cell-main">
+						<text class="cell-title">校验与降级</text>
+						<text class="cell-desc">均空 fail 1001 / 仅其一非空正常弹窗</text>
+					</view>
+					<text class="cell-arrow">›</text>
+				</RouterLink>
+				<RouterLink to="pages-sub/modal-probe/modal-probe" class="cell">
+					<view class="cell-main">
+						<text class="cell-title">平台原生探针</text>
+						<text class="cell-desc">直调 uni.showModal 探测各端原生行为（M0 实测页）</text>
+					</view>
+					<text class="cell-arrow">›</text>
+				</RouterLink>
+			</view>
+		</view>
+	</scroll-view>
 </template>
 
 <script setup lang="uts">
-	import { showToast, showToastSuccess, showToastError, showToastInfo, showToastAsync, hideToast } from '@/uni_modules/ux-utils'
-
-	/**
-	 * 跳转 showModal 参数矩阵实测页（M0 前置实测）
-	 */
-	function onModalProbe(): void {
-		uni.navigateTo({
-			url: '/pages/modal/probe'
-		})
-	}
-
-	/**
-	 * 跳转 modal 库功能测试页（M3）
-	 */
-	function onModalDemo(): void {
-		uni.navigateTo({
-			url: '/pages/modal/demo'
-		})
-	}
-
-	function onSuccess(): void {
-		showToastSuccess('操作成功')
-	}
-
-	function onError(): void {
-		showToastError('操作失败')
-	}
-
-	function onInfo(): void {
-		showToastInfo('这是一条消息')
-	}
-
-	function onWarning(): void {
-		showToast({
-			title: '请注意',
-			icon: 'warning',
-			mask: true,
-			duration: 2000
-		})
-	}
-
-	function onTop(): void {
-		showToast({
-			title: '顶部提示',
-			position: 'top'
-		})
-	}
-
-	function onMask(): void {
-		showToast({
-			title: '蒙层提示（触摸被拦截）',
-			mask: true
-		})
-	}
-
-	function onHide(): void {
-		showToast({
-			title: '5 秒后自动消失，可提前隐藏',
-			duration: 5000
-		})
-		setTimeout(() => {
-			hideToast()
-		}, 1500)
-	}
-
-	/**
-	 * toast async 失败契约验证：icon='fail' 全端触发降级（fail 2001 → reject）
-	 * 预期：reject 值为 ToastFail 结构 JSON 字符串（errCode=2001 param=icon），屏幕 toast 显示该 JSON
-	 */
-	function onToastAsyncFail(): void {
-		showToastAsync({
-			title: 'icon=fail 降级测试',
-			icon: 'fail'
-		}).then(() => {
-			console.log('[toast-async-fail] resolve（未触发降级）')
-		}).catch((err) => {
-			const msg = err as string
-			console.log(`[toast-async-fail] reject: ${msg}`)
-			showToastError(`reject: ${msg}`)
-		})
-	}
+	// 页面声明宏：编译期由 @meng-xi/unix-router/vite-plugin 剥离，驱动 pages.json 与路由表生成
+	defineUniPage({
+		title: 'unix-utils',
+		name: 'home'
+	})
+	import { RouterLink } from '@/uni_modules/ux-router/utssdk/index.uts'
 </script>
 
 <style>
-	.container {
-		flex: 1;
+	.banner {
 		flex-direction: column;
 		align-items: center;
-		justify-content: center;
-		padding-bottom: 24rpx;
+		background-color: #0a7aff;
+		border-radius: 20rpx;
+		padding: 48rpx 0;
+	}
+
+	.banner-title {
+		font-size: 40rpx;
+		font-weight: bold;
+		color: #ffffff;
+	}
+
+	.banner-sub {
+		font-size: 24rpx;
+		color: #d6e9ff;
+		margin-top: 12rpx;
+	}
+
+	.group-title {
+		font-size: 26rpx;
+		color: #8a8f99;
+		margin: 28rpx 8rpx 12rpx 8rpx;
+	}
+
+	.cell-group {
+		flex-direction: column;
+		background-color: #ffffff;
+		border-radius: 16rpx;
+	}
+
+	.cell {
+		flex-direction: row;
+		align-items: center;
+		padding: 26rpx 24rpx;
+	}
+
+	.cell-main {
+		flex: 1;
+		flex-direction: column;
+	}
+
+	.cell-title {
+		font-size: 30rpx;
+		color: #1a1a1a;
+	}
+
+	.cell-desc {
+		font-size: 22rpx;
+		color: #8a8f99;
+		margin-top: 6rpx;
+	}
+
+	.cell-arrow {
+		font-size: 32rpx;
+		color: #c8c9cc;
+		margin-left: 12rpx;
 	}
 </style>

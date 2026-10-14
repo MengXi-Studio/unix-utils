@@ -1,0 +1,96 @@
+<template>
+	<scroll-view style="flex:1">
+		<view class="container">
+			<view class="intro">
+				<text class="intro-title">功能说明</text>
+				<text class="intro-text">交互行为抹平（App 自绘 / Web 通道）：Android 返回键关闭且 cancel=true；蒙层点击不关闭（微信语义）；连续调用后一个直接替换前一个。返回键用例仅 App 端有效。</text>
+			</view>
+
+			<text class="section">用例</text>
+			<view class="row">
+				<button size="mini" @click="t19BackKey">19 返回键关闭</button>
+				<button size="mini" @click="t20MaskTap">20 蒙层不关闭</button>
+				<button size="mini" @click="t21Consecutive">21 后替前</button>
+			</view>
+
+			<view class="logs">
+				<view class="logs-head">
+					<text class="logs-title">运行日志</text>
+					<button size="mini" @click="clearLog">清空</button>
+				</view>
+				<text v-for="(line, index) in logs" :key="index" class="log">{{ line }}</text>
+			</view>
+		</view>
+	</scroll-view>
+</template>
+
+<script setup lang="uts">
+	// 页面声明宏：编译期由 @meng-xi/unix-router/vite-plugin 剥离，驱动 pages.json 与路由表生成
+	defineUniPage({
+		title: '交互行为',
+		name: 'modal-interact'
+	})
+	import { showModal } from '@/uni_modules/ux-utils'
+	import { describeResult, describeFail } from '@/common/test-utils.uts'
+
+	const logs = reactive<string[]>([])
+
+	function log(tag: string, msg: string): void {
+		const line = '[' + tag + '] ' + msg
+		logs.unshift(line)
+		if (logs.length > 200) {
+			logs.splice(200, logs.length - 200)
+		}
+		console.log(line)
+	}
+
+	function clearLog(): void {
+		logs.splice(0, logs.length)
+	}
+
+	/* ===== 19 返回键关闭：App 端按系统返回键，success 返回 cancel=true ===== */
+	function t19BackKey(): void {
+		showModal({
+			title: '返回键关闭',
+			content: '展示后按系统返回键，弹窗应关闭且日志输出 cancel=true',
+			success: (res) => {
+				log('19', describeResult(res))
+			},
+			fail: (err) => {
+				log('19', 'fail ' + describeFail(err))
+			}
+		})
+	}
+
+	/* ===== 20 蒙层点击不关闭：点蒙层无回调，仅按钮 / 返回键可关闭 ===== */
+	function t20MaskTap(): void {
+		showModal({
+			title: '蒙层不关闭',
+			content: '点击蒙层区域，弹窗应保持展示且无任何回调日志',
+			success: (res) => {
+				log('20', describeResult(res))
+			},
+			fail: (err) => {
+				log('20', 'fail ' + describeFail(err))
+			}
+		})
+	}
+
+	/* ===== 21 连续调用后替前：第二个直接替换第一个，仅被交互的弹窗回调 ===== */
+	function t21Consecutive(): void {
+		showModal({
+			title: '第一个弹窗',
+			content: '应被下一个弹窗直接替换，不会排队展示',
+			success: (res) => {
+				log('21-1', describeResult(res))
+			}
+		})
+		showModal({
+			title: '第二个弹窗',
+			content: '替换了前一个弹窗',
+			success: (res) => {
+				log('21-2', describeResult(res))
+			}
+		})
+	}
+</script>

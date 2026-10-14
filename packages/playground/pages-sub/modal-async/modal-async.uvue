@@ -1,0 +1,90 @@
+<template>
+	<scroll-view style="flex:1">
+		<view class="container">
+			<view class="intro">
+				<text class="intro-title">功能说明</text>
+				<text class="intro-text">showModalAsync 点取消不算失败（仍 resolve）；仅 API 调用本身失败才 reject，reject 值为 ModalFail 结构 JSON 字符串，业务侧 JSON.parse 还原。</text>
+			</view>
+
+			<text class="section">用例</text>
+			<view class="row">
+				<button size="mini" @click="t09Confirm">09 点确认</button>
+				<button size="mini" @click="t10Cancel">10 点取消</button>
+				<button size="mini" @click="t11Empty">11 空参 reject</button>
+			</view>
+
+			<view class="logs">
+				<view class="logs-head">
+					<text class="logs-title">运行日志</text>
+					<button size="mini" @click="clearLog">清空</button>
+				</view>
+				<text v-for="(line, index) in logs" :key="index" class="log">{{ line }}</text>
+			</view>
+		</view>
+	</scroll-view>
+</template>
+
+<script setup lang="uts">
+	// 页面声明宏：编译期由 @meng-xi/unix-router/vite-plugin 剥离，驱动 pages.json 与路由表生成
+	defineUniPage({
+		title: 'Promise 异步',
+		name: 'modal-async'
+	})
+	import { showModalAsync } from '@/uni_modules/ux-utils'
+	import type { ModalFail } from '@/uni_modules/ux-utils'
+	import { describeResult, describeFail } from '@/common/test-utils.uts'
+
+	const logs = reactive<string[]>([])
+
+	function log(tag: string, msg: string): void {
+		const line = '[' + tag + '] ' + msg
+		logs.unshift(line)
+		if (logs.length > 200) {
+			logs.splice(200, logs.length - 200)
+		}
+		console.log(line)
+	}
+
+	function clearLog(): void {
+		logs.splice(0, logs.length)
+	}
+
+	/* ===== 09 async 点确认：resolve confirm=true ===== */
+	function t09Confirm(): void {
+		showModalAsync({
+			title: '异步弹窗',
+			content: '点击确认后 Promise resolve'
+		}).then((res) => {
+			log('09', 'resolve ' + describeResult(res))
+		}).catch((err) => {
+			const f = JSON.parse<ModalFail>(err as string)
+			log('09', f != null ? 'reject ' + describeFail(f) : 'reject: ' + (err as string))
+		})
+	}
+
+	/* ===== 10 async 点取消：仍 resolve cancel=true（取消不是失败） ===== */
+	function t10Cancel(): void {
+		showModalAsync({
+			title: '异步点取消',
+			content: '点击取消按钮，Promise 应 resolve 而非 reject'
+		}).then((res) => {
+			log('10', 'resolve ' + describeResult(res))
+		}).catch((err) => {
+			const f = JSON.parse<ModalFail>(err as string)
+			log('10', f != null ? 'reject ' + describeFail(f) : 'reject: ' + (err as string))
+		})
+	}
+
+	/* ===== 11 async 空参：reject ModalFail JSON（errCode=1001） ===== */
+	function t11Empty(): void {
+		showModalAsync({
+			title: '',
+			content: ''
+		}).then((res) => {
+			log('11', '不应成功 ' + describeResult(res))
+		}).catch((err) => {
+			const f = JSON.parse<ModalFail>(err as string)
+			log('11', f != null ? 'reject ' + describeFail(f) : 'reject: ' + (err as string))
+		})
+	}
+</script>

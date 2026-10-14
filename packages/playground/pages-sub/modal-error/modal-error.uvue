@@ -1,0 +1,95 @@
+<template>
+	<scroll-view style="flex:1">
+		<view class="container">
+			<view class="intro">
+				<text class="intro-title">功能说明</text>
+				<text class="intro-text">参数校验边界：title 与 content 均空 → fail 1001（param='title'，complete 同步触发）；仅其一非空 → 正常弹窗（校验边界另一半）。</text>
+			</view>
+
+			<text class="section">用例</text>
+			<view class="row">
+				<button size="mini" @click="t07aBothEmpty">07a 均空 fail 1001</button>
+				<button size="mini" @click="t07bOnlyContent">07b 仅 content</button>
+				<button size="mini" @click="t07cOnlyTitle">07c 仅 title</button>
+			</view>
+
+			<view class="logs">
+				<view class="logs-head">
+					<text class="logs-title">运行日志</text>
+					<button size="mini" @click="clearLog">清空</button>
+				</view>
+				<text v-for="(line, index) in logs" :key="index" class="log">{{ line }}</text>
+			</view>
+		</view>
+	</scroll-view>
+</template>
+
+<script setup lang="uts">
+	// 页面声明宏：编译期由 @meng-xi/unix-router/vite-plugin 剥离，驱动 pages.json 与路由表生成
+	defineUniPage({
+		title: '校验与降级',
+		name: 'modal-error'
+	})
+	import { showModal } from '@/uni_modules/ux-utils'
+	import { describeResult, describeFail } from '@/common/test-utils.uts'
+
+	const logs = reactive<string[]>([])
+
+	function log(tag: string, msg: string): void {
+		const line = '[' + tag + '] ' + msg
+		logs.unshift(line)
+		if (logs.length > 200) {
+			logs.splice(200, logs.length - 200)
+		}
+		console.log(line)
+	}
+
+	function clearLog(): void {
+		logs.splice(0, logs.length)
+	}
+
+	/* ===== 07a title / content 均空 → 不弹窗，fail 1001 ===== */
+	function t07aBothEmpty(): void {
+		showModal({
+			title: '',
+			content: '',
+			success: (res) => {
+				log('07a', '不应成功 ' + describeResult(res))
+			},
+			fail: (err) => {
+				log('07a', 'fail ' + describeFail(err))
+			},
+			complete: () => {
+				log('07a', 'complete 已同步触发')
+			}
+		})
+	}
+
+	/* ===== 07b 仅 content 非空 → 正常弹窗（无标题） ===== */
+	function t07bOnlyContent(): void {
+		showModal({
+			title: '',
+			content: '只有内容没有标题，应正常弹窗',
+			success: (res) => {
+				log('07b', describeResult(res))
+			},
+			fail: (err) => {
+				log('07b', 'fail ' + describeFail(err))
+			}
+		})
+	}
+
+	/* ===== 07c 仅 title 非空 → 正常弹窗（无内容） ===== */
+	function t07cOnlyTitle(): void {
+		showModal({
+			title: '只有标题',
+			content: '',
+			success: (res) => {
+				log('07c', describeResult(res))
+			},
+			fail: (err) => {
+				log('07c', 'fail ' + describeFail(err))
+			}
+		})
+	}
+</script>

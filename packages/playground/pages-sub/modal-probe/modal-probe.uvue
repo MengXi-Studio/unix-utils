@@ -19,6 +19,11 @@
 </template>
 
 <script setup lang="uts">
+	// 页面声明宏：编译期由 @meng-xi/unix-router/vite-plugin 剥离，驱动 pages.json 与路由表生成
+	defineUniPage({
+		title: '平台原生探针',
+		name: 'modal-probe'
+	})
 	/**
 	 * M0 前置实测页：直接调用 uni.showModal（不经库封装），探测各端真实行为
 	 * 实测项：默认色 / 颜色参数 / #RRGGBBAA / editable / 文案截断 / 按钮位置 / 蒙层交互 / 返回值字段 / 连续调用
