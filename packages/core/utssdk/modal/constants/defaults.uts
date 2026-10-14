@@ -17,3 +17,9 @@ export const BUILTIN_CONFIRM_COLOR: string = '#007aff'
 
 /** 内置默认取消按钮颜色 */
 export const BUILTIN_CANCEL_COLOR: string = '#000000'
+
+/**
+ * 内置内容滚动阈值（百分比）：内容实测高度超过屏高的该百分比时才限高滚动，
+ * 短内容不出现滚动条（对齐原生体验）。v0.2.0 砍掉对外可配置参数，仅保留内置行为。
+ */
+export const BUILTIN_MAX_CONTENT_HEIGHT_PERCENT: number = 60

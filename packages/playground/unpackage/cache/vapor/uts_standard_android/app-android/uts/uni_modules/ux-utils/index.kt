@@ -4,14 +4,20 @@ import android.app.Activity
 import android.content.Context
 import android.graphics.Color
 import android.graphics.PixelFormat
+import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.IBinder
 import android.util.TypedValue
 import android.view.Gravity
+import android.view.KeyEvent
 import android.view.View
+import android.view.View.OnClickListener
+import android.view.View.OnKeyListener
 import android.view.WindowManager
+import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.LinearLayout
+import android.widget.ScrollView
 import android.widget.TextView
 import io.dcloud.uniapp.*
 import io.dcloud.uniapp.extapi.*
@@ -759,6 +765,9 @@ val MODAL_ERR_PARAM_INVALID: ModalErrorCode__1 = 1001
 val MODAL_ERR_PLATFORM_UNSUPPORTED: ModalErrorCode__1 = 2001
 val BUILTIN_CONFIRM_TEXT: String = "确定"
 val BUILTIN_CANCEL_TEXT: String = "取消"
+val BUILTIN_CONFIRM_COLOR: String = "#007aff"
+val BUILTIN_CANCEL_COLOR: String = "#000000"
+val BUILTIN_MAX_CONTENT_HEIGHT_PERCENT: Number = 60
 val MODAL_TEXT_MAX_LENGTH: Number = 4
 val MODAL_ERR_SUBJECT: String = "unix-utils:modal"
 fun isModalHexChar(c: String): Boolean {
@@ -880,7 +889,7 @@ fun normalizeModal(options: ModalOptions): NormalizeModalResult {
     }
     val cancelText: String = truncateModalText(rawCancelText, platform)
     val confirmText: String = truncateModalText(rawConfirmText, platform)
-    val supportsAlpha = platform === "web"
+    val supportsAlpha = isSelfDrawPlatform(platform)
     val rawCancelColor = if (options.cancelColor != null) {
         options.cancelColor!!
     } else {
@@ -929,6 +938,375 @@ fun showModalNative(options: NormalizedModalOptions): Unit {
     }
     ))
 }
+var modalCardRoot: View? = null
+var modalMaskRoot: View? = null
+var modalInput: EditText? = null
+fun modalDp2pxI(activity: Activity, dp: Number): Int {
+    val density = UTSNumber.from(activity.getResources().getDisplayMetrics().density)
+    return (dp * density).toInt()
+}
+fun modalDp2pxF(activity: Activity, dp: Number): Float {
+    val density = UTSNumber.from(activity.getResources().getDisplayMetrics().density)
+    return (dp * density).toFloat()
+}
+fun modalHexVal(c: String): Number {
+    val code = c.charCodeAt(0)
+    if (code == null) {
+        return 0
+    }
+    if (code >= 48 && code <= 57) {
+        return code - 48
+    }
+    if (code >= 65 && code <= 70) {
+        return code - 55
+    }
+    if (code >= 97 && code <= 102) {
+        return code - 87
+    }
+    return 0
+}
+fun parseModalColorInt(value: String?, fallback: Int): Int {
+    if (value == null) {
+        return fallback
+    }
+    val hex = value.substring(1)
+    var r: Number = 0
+    var g: Number = 0
+    var b: Number = 0
+    var a: Number = 255
+    if (hex.length == 6) {
+        r = modalHexVal(hex.charAt(0)) * 16 + modalHexVal(hex.charAt(1))
+        g = modalHexVal(hex.charAt(2)) * 16 + modalHexVal(hex.charAt(3))
+        b = modalHexVal(hex.charAt(4)) * 16 + modalHexVal(hex.charAt(5))
+    } else if (hex.length == 8) {
+        r = modalHexVal(hex.charAt(0)) * 16 + modalHexVal(hex.charAt(1))
+        g = modalHexVal(hex.charAt(2)) * 16 + modalHexVal(hex.charAt(3))
+        b = modalHexVal(hex.charAt(4)) * 16 + modalHexVal(hex.charAt(5))
+        a = modalHexVal(hex.charAt(6)) * 16 + modalHexVal(hex.charAt(7))
+    } else {
+        return fallback
+    }
+    return Color.argb(a.toInt(), r.toInt(), g.toInt(), b.toInt())
+}
+fun buildModalMask(activity: Activity): FrameLayout {
+    val root = FrameLayout(activity)
+    val dim = GradientDrawable()
+    dim.setColor(Color.parseColor("#80000000"))
+    root.setBackground(dim)
+    return root
+}
+fun buildModalButton(activity: Activity, text: String, colorHex: String): TextView {
+    val btn = TextView(activity)
+    btn.setText(text)
+    btn.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16.0f)
+    btn.setGravity(Gravity.CENTER)
+    btn.setTextColor(parseModalColorInt(colorHex, Color.parseColor(BUILTIN_CONFIRM_COLOR)))
+    return btn
+}
+fun modalButtonParams(activity: Activity): LinearLayout.LayoutParams {
+    val lp = LinearLayout.LayoutParams(0, modalDp2pxI(activity, 40.0))
+    lp.weight = 1.0f
+    return lp
+}
+fun modalRowLp(activity: Activity, topMarginDp: Number): LinearLayout.LayoutParams {
+    val lp = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+    lp.topMargin = modalDp2pxI(activity, topMarginDp)
+    return lp
+}
+open class ModalButtonClickListener : OnClickListener, IUTSSourceMap {
+    override fun `__$getOriginalPosition`(): UTSSourceMapPosition? {
+        return UTSSourceMapPosition("ModalButtonClickListener", "uni_modules/ux-utils/utssdk/modal/channels/app/window-android.uts", 146, 7)
+    }
+    private var modalOptions: NormalizedModalOptions
+    private var isConfirm: Boolean
+    constructor(options: NormalizedModalOptions, confirm: Boolean){
+        this.modalOptions = options
+        this.isConfirm = confirm
+    }
+    override fun onClick(v: View?): Unit {
+        finishWindowModal(this.modalOptions, this.isConfirm)
+    }
+}
+open class ModalBackKeyListener : OnKeyListener, IUTSSourceMap {
+    override fun `__$getOriginalPosition`(): UTSSourceMapPosition? {
+        return UTSSourceMapPosition("ModalBackKeyListener", "uni_modules/ux-utils/utssdk/modal/channels/app/window-android.uts", 161, 7)
+    }
+    private var modalOptions: NormalizedModalOptions
+    constructor(options: NormalizedModalOptions){
+        this.modalOptions = options
+    }
+    override fun onKey(v: View?, keyCode: Int, event: KeyEvent?): Boolean {
+        val ev = event
+        if (ev == null) {
+            return false
+        }
+        if (keyCode == KeyEvent.KEYCODE_BACK && ev.getAction() == KeyEvent.ACTION_DOWN) {
+            finishWindowModal(this.modalOptions, false)
+            return true
+        }
+        return false
+    }
+}
+fun buildModalCard(activity: Activity, options: NormalizedModalOptions): LinearLayout {
+    val card = LinearLayout(activity)
+    card.setOrientation(LinearLayout.VERTICAL)
+    val bg = GradientDrawable()
+    bg.setColor(Color.WHITE)
+    bg.setCornerRadius(modalDp2pxF(activity, 12.0))
+    card.setBackground(bg)
+    val padH = modalDp2pxI(activity, 20.0)
+    card.setPadding(padH, modalDp2pxI(activity, 24.0), padH, modalDp2pxI(activity, 16.0))
+    card.setMinimumWidth(modalDp2pxI(activity, 280.0))
+    if (options.title.length > 0) {
+        val title = TextView(activity)
+        title.setTextColor(Color.parseColor("#111111"))
+        title.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 17.0f)
+        title.setTypeface(Typeface.DEFAULT_BOLD)
+        title.setGravity(Gravity.CENTER)
+        title.setText(options.title)
+        card.addView(title, modalRowLp(activity, 0.0))
+    }
+    if (options.editable) {
+        val input = EditText(activity)
+        input.setText(options.content)
+        input.setSelection(options.content.length.toInt())
+        input.setSingleLine(true)
+        input.setTextColor(Color.parseColor("#333333"))
+        input.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14.0f)
+        input.setHintTextColor(Color.parseColor("#999999"))
+        if (options.placeholderText != null) {
+            input.setHint(options.placeholderText!!)
+        }
+        val inputBg = GradientDrawable()
+        inputBg.setColor(Color.WHITE)
+        inputBg.setCornerRadius(modalDp2pxF(activity, 4.0))
+        inputBg.setStroke(modalDp2pxI(activity, 1.0), Color.parseColor("#DDDDDD"))
+        input.setBackground(inputBg)
+        val vPad = modalDp2pxI(activity, 8.0)
+        input.setPadding(vPad, vPad, vPad, vPad)
+        input.setMinimumHeight(modalDp2pxI(activity, 36.0))
+        card.addView(input, modalRowLp(activity, 12.0))
+        modalInput = input
+    } else if (options.content.length > 0) {
+        val contentTv = TextView(activity)
+        contentTv.setTextColor(Color.parseColor("#666666"))
+        contentTv.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14.0f)
+        contentTv.setGravity(Gravity.CENTER)
+        contentTv.setText(options.content)
+        val wSpec = View.MeasureSpec.makeMeasureSpec(modalDp2pxI(activity, 240.0), View.MeasureSpec.AT_MOST)
+        contentTv.measure(wSpec, 0)
+        val measuredHeight = contentTv.getMeasuredHeight()
+        val metrics = activity.getResources().getDisplayMetrics()
+        val maxContentPx = (UTSNumber.from(metrics.heightPixels) * (BUILTIN_MAX_CONTENT_HEIGHT_PERCENT / 100.0)).toInt()
+        if (measuredHeight > maxContentPx) {
+            val sv = ScrollView(activity)
+            sv.setVerticalScrollBarEnabled(true)
+            val svLp = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, maxContentPx)
+            svLp.topMargin = modalDp2pxI(activity, 8.0)
+            sv.setLayoutParams(svLp)
+            val innerLp = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+            sv.addView(contentTv, innerLp)
+            card.addView(sv)
+        } else {
+            card.addView(contentTv, modalRowLp(activity, 8.0))
+        }
+    } else {
+        modalInput = null
+    }
+    val row = LinearLayout(activity)
+    row.setOrientation(LinearLayout.HORIZONTAL)
+    row.setLayoutParams(modalRowLp(activity, 20.0))
+    if (options.showCancel) {
+        val cancelColor = if (options.cancelColor != null) {
+            options.cancelColor!!
+        } else {
+            BUILTIN_CANCEL_COLOR
+        }
+        val cancelBtn = buildModalButton(activity, options.cancelText, cancelColor)
+        cancelBtn.setOnClickListener(ModalButtonClickListener(options, false))
+        row.addView(cancelBtn, modalButtonParams(activity))
+    }
+    val confirmColor = if (options.confirmColor != null) {
+        options.confirmColor!!
+    } else {
+        BUILTIN_CONFIRM_COLOR
+    }
+    val confirmBtn = buildModalButton(activity, options.confirmText, confirmColor)
+    confirmBtn.setOnClickListener(ModalButtonClickListener(options, true))
+    row.addView(confirmBtn, modalButtonParams(activity))
+    card.addView(row)
+    return card
+}
+fun finishWindowModal(options: NormalizedModalOptions, confirm: Boolean): Unit {
+    var content: String? = null
+    if (confirm && options.editable) {
+        val input = modalInput
+        content = if (input != null) {
+            input.getText().toString()
+        } else {
+            ""
+        }
+    }
+    hideWindowModalViews()
+    if (options.success == null) {
+        return
+    }
+    val r = ModalResult(confirm = confirm, cancel = !confirm, content = content)
+    options.success!!(r)
+    if (options.complete != null) {
+        options.complete!!(r)
+    }
+}
+fun hideWindowModalViews(): Unit {
+    val card = modalCardRoot
+    val mask = modalMaskRoot
+    if (card == null && mask == null) {
+        return
+    }
+    modalCardRoot = null
+    modalMaskRoot = null
+    modalInput = null
+    val act = UTSAndroid.getUniActivity()
+    if (act == null) {
+        return
+    }
+    val activity = act as Activity
+    activity.runOnUiThread(fun(){
+        try {
+            if (card != null) {
+                card.animate().alpha(0.0f).setDuration(200).start()
+            }
+            if (mask != null) {
+                mask.animate().alpha(0.0f).setDuration(200).start()
+            }
+            setTimeout(fun(){
+                val wm = activity.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+                if (card != null) {
+                    try {
+                        wm.removeView(card)
+                    }
+                     catch (e: Throwable) {}
+                }
+                if (mask != null) {
+                    try {
+                        wm.removeView(mask)
+                    }
+                     catch (e: Throwable) {}
+                }
+            }
+            , 220)
+        }
+         catch (e: Throwable) {}
+    }
+    )
+}
+fun dismissModalImmediate(): Unit {
+    val card = modalCardRoot
+    val mask = modalMaskRoot
+    modalCardRoot = null
+    modalMaskRoot = null
+    modalInput = null
+    val act = UTSAndroid.getUniActivity()
+    if (act == null) {
+        return
+    }
+    val activity = act as Activity
+    val wm = activity.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+    if (card != null) {
+        try {
+            wm.removeView(card)
+        }
+         catch (e: Throwable) {}
+    }
+    if (mask != null) {
+        try {
+            wm.removeView(mask)
+        }
+         catch (e: Throwable) {}
+    }
+}
+fun showWindowModal(options: NormalizedModalOptions, fail: ((errMsg: String) -> Unit)?): Unit {
+    val act = UTSAndroid.getUniActivity()
+    if (act == null) {
+        if (fail != null) {
+            fail("getUniActivity() 为 null，无法挂窗")
+        }
+        return
+    }
+    val activity = act as Activity
+    activity.runOnUiThread(fun(){
+        try {
+            dismissModalImmediate()
+            val token = activity.getWindow().getDecorView().getWindowToken()
+            if (token == null) {
+                if (fail != null) {
+                    fail("windowToken 为 null（页面未就绪），无法挂窗")
+                }
+                return
+            }
+            val wm = activity.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+            val maskParams = WindowManager.LayoutParams()
+            maskParams.type = WindowManager.LayoutParams.TYPE_APPLICATION_PANEL
+            maskParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+            maskParams.format = PixelFormat.TRANSLUCENT
+            maskParams.width = WindowManager.LayoutParams.MATCH_PARENT
+            maskParams.height = WindowManager.LayoutParams.MATCH_PARENT
+            maskParams.token = token
+            val maskView = buildModalMask(activity)
+            wm.addView(maskView, maskParams)
+            modalMaskRoot = maskView
+            val cardParams = WindowManager.LayoutParams()
+            cardParams.type = WindowManager.LayoutParams.TYPE_APPLICATION_PANEL
+            cardParams.format = PixelFormat.TRANSLUCENT
+            cardParams.width = WindowManager.LayoutParams.WRAP_CONTENT
+            cardParams.height = WindowManager.LayoutParams.WRAP_CONTENT
+            cardParams.gravity = Gravity.CENTER
+            if (options.editable) {
+                cardParams.softInputMode = WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE or WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN
+            }
+            cardParams.token = token
+            val card = buildModalCard(activity, options)
+            card.setFocusableInTouchMode(true)
+            card.setOnKeyListener(ModalBackKeyListener(options))
+            wm.addView(card, cardParams)
+            modalCardRoot = card
+            card.setAlpha(0.0f)
+            card.animate().alpha(1.0f).setDuration(200).start()
+            maskView.setAlpha(0.0f)
+            maskView.animate().alpha(1.0f).setDuration(200).start()
+            if (options.editable) {
+                val input = modalInput
+                if (input != null) {
+                    input.requestFocus()
+                }
+            } else {
+                card.requestFocus()
+            }
+            console.log("[unix-modal] addView 成功 editable=" + options.editable + " showCancel=" + options.showCancel, " at uni_modules/ux-utils/utssdk/modal/channels/app/window-android.uts:451")
+        }
+         catch (e: Throwable) {
+            if (fail != null) {
+                fail("挂窗异常: " + e.message)
+            }
+        }
+    }
+    )
+}
+fun notifyModalFallback(options: NormalizedModalOptions, param: String?, errMsg: String): Unit {
+    if (options.fail == null) {
+        return
+    }
+    val f = ModalFail(errCode = MODAL_ERR_PLATFORM_UNSUPPORTED, errSubject = MODAL_ERR_SUBJECT, errMsg = errMsg, param = param, platform = getPlatform())
+    options.fail!!(f)
+}
+fun showModalAppSelfDraw(options: NormalizedModalOptions): Unit {
+    showWindowModal(options, fun(errMsg: String){
+        console.log("[modal] 窗口直挂失败，降级 uni.showModal: " + errMsg, " at uni_modules/ux-utils/utssdk/modal/channels/app/self-draw.uts:49")
+        showModalNative(options)
+        notifyModalFallback(options, null, "窗口直挂失败，已降级原生通道: " + errMsg)
+    }
+    )
+}
 fun notifyModalDegraded(options: ModalOptions, degraded: UTSArray<String>): Unit {
     if (degraded.length === 0 || options.fail == null) {
         return
@@ -953,7 +1331,7 @@ fun notifyModalParamInvalid(options: ModalOptions): Unit {
     }
 }
 fun dispatchModalShow(options: NormalizedModalOptions): Unit {
-    showModalNative(options)
+    showModalAppSelfDraw(options)
 }
 fun showModalImpl(options: ModalOptions): Unit {
     val title = if (options.title != null) {
@@ -986,7 +1364,7 @@ fun showModalAsyncImpl(options: ModalOptions): UTSPromise<ModalResult> {
             if (options.fail != null) {
                 options.fail!!(err)
             }
-            val j: UTSJSONObject = _uO("__\$originalPosition" to UTSSourceMapPosition("j", "uni_modules/ux-utils/utssdk/modal/show-modal.uts", 103, 23), "errCode" to err.errCode, "errSubject" to err.errSubject, "errMsg" to err.errMsg, "param" to err.param, "platform" to err.platform)
+            val j: UTSJSONObject = _uO("__\$originalPosition" to UTSSourceMapPosition("j", "uni_modules/ux-utils/utssdk/modal/show-modal.uts", 105, 23), "errCode" to err.errCode, "errSubject" to err.errSubject, "errMsg" to err.errMsg, "param" to err.param, "platform" to err.platform)
             reject(JSON.stringify(j))
         }
         , complete = options.complete)

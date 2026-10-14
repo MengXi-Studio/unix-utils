@@ -4,11 +4,13 @@
  * Web 端走 DOM 单例自绘，与 toast 自绘架构对齐：
  * - 蒙层 + 居中卡片 + 按钮行 + input（editable）
  * - 蒙层点击不关闭（统一交互，矩阵标注）
- * - 颜色 / 文案 / editable 全生效，未传颜色取库内置默认
+ * - 内容超过内置阈值（屏高 60%）才限高滚动，短内容无滚动条
+ * - editable 语义对齐微信官方：content 作为输入框初始值，光标定位末尾
+ * - 颜色 / 文案 / editable 全生效，未传颜色取库内置默认；#RRGGBBAA 保留 alpha
  * - 仅通过 textContent / 属性写入用户内容，规避 XSS
  */
 import type { NormalizedModalOptions, ModalResult } from '../types'
-import { BUILTIN_CONFIRM_COLOR, BUILTIN_CANCEL_COLOR } from '../constants'
+import { BUILTIN_CONFIRM_COLOR, BUILTIN_CANCEL_COLOR, BUILTIN_MAX_CONTENT_HEIGHT_PERCENT } from '../constants'
 
 /** 样式节点 id */
 const MODAL_STYLE_ID = 'unix-modal-style'
@@ -75,18 +77,23 @@ export function showModalSelfDraw(options: NormalizedModalOptions): void {
 		titleEl.textContent = options.title
 		card.appendChild(titleEl)
 	}
-	if (options.content.length > 0) {
+	// editable 时 content 作为输入框初始值（微信官方语义），不渲染正文
+	if (!options.editable && options.content.length > 0) {
 		const contentEl = document.createElement('div')
 		contentEl.className = 'unix-modal-content'
 		contentEl.textContent = options.content
+		// 内置阈值：超过屏高 60% 才限高滚动，短内容无滚动条（与 App 自绘通道一致）
+		contentEl.style.maxHeight = BUILTIN_MAX_CONTENT_HEIGHT_PERCENT.toString() + 'vh'
+		contentEl.style.overflowY = 'auto'
 		card.appendChild(contentEl)
 	}
 
-	// 输入框（editable）
+	// 输入框（editable）：content 作为初始值
 	let inputEl: HTMLInputElement | null = null
 	if (options.editable) {
 		inputEl = document.createElement('input')
 		inputEl.className = 'unix-modal-input'
+		inputEl.value = options.content
 		if (options.placeholderText != null) {
 			inputEl.placeholder = options.placeholderText
 		}
@@ -137,4 +144,11 @@ export function showModalSelfDraw(options: NormalizedModalOptions): void {
 
 	card.appendChild(btns)
 	root.appendChild(card)
+
+	// editable：聚焦并把光标定位到输入内容末尾
+	if (inputEl != null) {
+		const len = options.content.length
+		inputEl.focus()
+		inputEl.setSelectionRange(len, len)
+	}
 }

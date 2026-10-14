@@ -3,7 +3,8 @@
  *
  * 规则（Q7）：接受 #RGB / #RRGGBB / #RRGGBBAA；
  * - #RGB 展开为 #RRGGBB（三端原生通道 6 位色值实测生效）
- * - #RRGGBBAA：自绘通道（Web）保留 alpha；原生通道剥离 alpha 并留痕
+ * - #RRGGBBAA：自绘通道（Web / App 自绘）保留 alpha 全生效；
+ *   微信 / 鸿蒙原生通道剥离 alpha 并留痕
  *   （M0 实测：8 位色与命名色平台静默回退默认色，不报错）
  * - 非法值（命名色 / 缺 # / 越界）归一为 null（等效未传，回退平台默认色）并留痕
  */

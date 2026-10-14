@@ -3,7 +3,8 @@
  *
  * 通道分发（编译期条件编译判定，禁止运行时 uniPlatform 匹配）：
  * - Web：DOM 自绘通道（Q2）
- * - 其他端（App / 微信 / 鸿蒙）：uni.showModal 原生通道（Q1 锁定 A）
+ * - App（Android / iOS）：UTS 直挂系统窗口自绘通道（v0.2.0，原生 dialogPage 已退役）
+ * - 其余端（微信 / 鸿蒙）：uni.showModal 原生通道
  */
 import type { ModalOptions, ModalResult, ModalFail, NormalizedModalOptions } from './types'
 import { MODAL_ERR_PARAM_INVALID, MODAL_ERR_PLATFORM_UNSUPPORTED } from './enums'
@@ -13,6 +14,9 @@ import { getPlatform } from '../toast/utils'
 import { showModalNative } from './channels/native'
 // #ifdef WEB
 import { showModalSelfDraw } from './channels/web'
+// #endif
+// #ifdef APP-ANDROID || APP-IOS
+import { showModalAppSelfDraw } from './channels/app/self-draw'
 // #endif
 
 /**
@@ -58,7 +62,11 @@ function notifyModalParamInvalid(options: ModalOptions): void {
 function dispatchModalShow(options: NormalizedModalOptions): void {
 	// #ifdef WEB
 	showModalSelfDraw(options)
-	// #else
+	// #endif
+	// #ifdef APP-ANDROID || APP-IOS
+	showModalAppSelfDraw(options)
+	// #endif
+	// #ifndef WEB || APP-ANDROID || APP-IOS
 	showModalNative(options)
 	// #endif
 }
