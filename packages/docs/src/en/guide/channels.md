@@ -17,10 +17,11 @@ The modal module (since v0.2) has a different channel split:
 
 | Platform | Channel | Implementation |
 | --- | --- | --- |
-| App-Android / App-iOS / WeChat / HarmonyOS | Native `uni.showModal` | Direct call + in-library normalization (color validation and alpha stripping, restricted-platform text truncation, return value `confirm` / `cancel` always present and mutually exclusive) |
-| Web | Self-drawn DOM singleton | Mask + centered card + button row + `input` (editable); tapping the mask does not close; text and alpha colors fully effective |
+| App-Android / App-iOS | UTS direct attachment to system windows with self-drawing | Registration-free window attachment via `WindowManager` / `UIWindow` + mask + centered card + button row + real input (editable); since v0.2.0 the App side no longer uses the native `uni.showModal` channel |
+| Web | Self-drawn DOM singleton | body-mounted singleton + mask + centered card + button row + `input` (editable); mask taps do not close; text and alpha colors fully effective |
+| WeChat / HarmonyOS | Native `uni.showModal` | Direct call + in-library normalization (color validation and alpha stripping, restricted-platform text truncation, return value `confirm` / `cancel` always present and mutually exclusive) |
 
-> Why modal does not do App-side window-attachment self-drawing: the parameters of the `uni.showModal` native channel are basically aligned in semantics across platforms, and the residual differences (alpha colors, text truncation, missing return-value fields) can all be smoothed out in the in-library normalization layer — the benefit of self-drawing does not outweigh its cost, so the App side reuses the native channel. The Web side uses self-drawing because there is no usable (or controllable) `uni.showModal` on Web, while DOM self-drawing can fully support alpha colors and untruncated text.
+> Why modal also does App-side window-attachment self-drawing: the parameters of the `uni.showModal` native channel are basically aligned in semantics across platforms, and most residual differences (text truncation, missing return-value fields) can be smoothed out in the in-library normalization layer; however, presentation-layer differences such as the editable input's `content` initial value / cursor control and alpha colors being stripped on native platforms cannot be normalized away. Since v0.2.0, modal reuses toast's window-attachment infrastructure, giving the App side a real editable input, full alpha color support, mask taps that never close, and Android back-button cancel semantics — the dialog presentation is consistent with the Web self-drawn channel. WeChat / HarmonyOS keep the native channel: self-drawing on Mini Programs would run into native-component and native-dialog occlusion issues, and the native modal's parameter semantics are aligned enough that normalization suffices.
 
 ## Dispatch Flow
 
@@ -62,21 +63,24 @@ Behavior of each parameter across the three channels (✅ fully effective / ⚠�
 
 ## Modal Normalization Matrix
 
-Behavior of each modal parameter across the two channels (✅ fully effective / ⚠️ falls back with a trace):
+Behavior of each modal parameter across the three channels (✅ fully effective / ⚠️ falls back with a trace):
 
-| Parameter | App / WeChat / HarmonyOS (native channel) | Web (self-drawn channel) |
-| --- | --- | --- |
-| `title` / `content` | ✅ Rendered natively | ✅ Really rendered (written via `textContent` to avoid XSS) |
-| `showCancel` | ✅ | ✅ |
-| `cancelText` / `confirmText` | ⚠️ Silently truncated beyond 4 characters on WeChat / HarmonyOS (full display on App) | ✅ Full display |
-| `cancelColor` / `confirmColor` = `#RGB` / `#RRGGBB` | ✅ (`#RGB` expanded to `#RRGGBB`) | ✅ |
-| `cancelColor` / `confirmColor` = `#RRGGBBAA` | ⚠️ Alpha stripped then applied, errCode 2001 | ✅ Alpha preserved |
-| Invalid color values | ⚠️ Falls back to the platform default color, errCode 2001 | ⚠️ Falls back to the built-in default color, errCode 2001 |
-| `editable` | ✅ (`content` doubles as the input's initial value) | ✅ Really renders an `<input>` (`content` shows as text; the input starts empty) |
-| `placeholderText` | ✅ | ✅ |
-| Return value `confirm` / `cancel` | ✅ Always present and mutually exclusive via in-library normalization | ✅ |
-| Tapping the mask | Native behavior (does not close on any platform) | Does not close (only buttons close it) |
-| Lifecycle | Page-level modal, blocks interaction | DOM singleton, survives within the SPA |
+| Parameter | App (window-attachment self-drawn channel) | Web (self-drawn channel) | WeChat / HarmonyOS (native channel) |
+| --- | --- | --- | --- |
+| `title` / `content` | ✅ Really rendered (written via `textContent` to avoid XSS) | ✅ Really rendered (written via `textContent` to avoid XSS) | ✅ Rendered natively |
+| `showCancel` | ✅ | ✅ | ✅ |
+| `cancelText` / `confirmText` | ✅ Full display | ✅ Full display | ⚠️ Silently truncated beyond 4 characters on WeChat / HarmonyOS |
+| `cancelColor` / `confirmColor` = `#RGB` / `#RRGGBB` | ✅ (`#RGB` expanded to `#RRGGBB`) | ✅ (`#RGB` expanded to `#RRGGBB`) | ✅ (`#RGB` expanded to `#RRGGBB`) |
+| `cancelColor` / `confirmColor` = `#RRGGBBAA` | ✅ Alpha fully effective | ✅ Alpha fully effective | ⚠️ Alpha stripped then applied, errCode 2001 |
+| Invalid color values | ⚠️ Falls back to the built-in default color, errCode 2001 | ⚠️ Falls back to the built-in default color, errCode 2001 | ⚠️ Falls back to the platform default color, errCode 2001 |
+| `editable` | ✅ Really renders an input (`content` as the initial value, cursor at the end) | ✅ Really renders an `<input>` (`content` as the initial value, cursor at the end) | ✅ (`content` doubles as the input's initial value, cursor position decided by the platform) |
+| `placeholderText` | ✅ | ✅ | ✅ |
+| Body text height capping | ✅ Height-capped and scrolls beyond 60% of the screen height | ✅ Height-capped and scrolls beyond 60% of the screen height | ✅ Native behavior |
+| Return value `confirm` / `cancel` | ✅ Always present and mutually exclusive | ✅ Always present and mutually exclusive | ✅ Always present and mutually exclusive via in-library normalization |
+| Tapping the mask | Does not close (only buttons close it) | Does not close (only buttons close it) | Native behavior (does not close) |
+| Android back button | Closes with cancel semantics (`cancel: true`) | — (no system back button) | — (the back button acts on page navigation) |
+| Consecutive calls | Singleton replaced | Singleton replaced | ✅ Replaced |
+| Lifecycle | System-window level | DOM singleton, survives within the SPA | Page-level modal, blocks interaction |
 
 ## Fallback Perception: the fail Callback
 
@@ -127,5 +131,5 @@ The WeChat / HarmonyOS sides keep the native channel; their residual differences
 ## Known Constraints
 
 - **App side**: the attached window covers everything in the page tree (including above the native tabbar), but independent layers of the `SurfaceView` kind (native video layers, maps) and system UI (status bar / navigation bar / system dialogs) still sit above it — ordinary business scenarios are unaffected;
-- **App-side mask**: the mask intercepts touches but does not consume the back button; the Android back button still acts on the business page stack;
+- **App-side toast mask**: the mask intercepts touches but does not consume the back button; the Android back button still acts on the business page stack (modal is different: the back button closes the dialog with cancel semantics);
 - **The trade-off of self-drawing on Mini Programs**: self-drawn toasts on WeChat would be occluded by native components (video / map / camera) and native dialogs, so keeping the native channel on WeChat / HarmonyOS is a deliberately weighed choice.

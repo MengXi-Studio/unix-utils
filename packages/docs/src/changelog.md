@@ -1,6 +1,6 @@
 # 更新日志
 
-## [0.2.0] - 2026-10-11
+## [0.2.0] - 2026-10-19
 
 第二个版本：modal 模块（`uni.showModal` 全端兼容封装）。
 
@@ -9,10 +9,13 @@
 - **modal 模块**：对 `uni.showModal` 的全端兼容封装（Android / iOS / Web / 微信 / 鸿蒙五端），业务侧统一 `import { showModal } from '@/uni_modules/unix-utils'`
 - **参数完全对齐**：`title / content / showCancel / cancelText / cancelColor / confirmText / confirmColor / editable / placeholderText / success / fail / complete` 与 `uni.showModal` 同构，迁移零成本；除回调外均为可选字段
 - **分端混合通道**（自动分发，业务零配置）：
-  - App / 微信 / 鸿蒙：`uni.showModal` 原生通道（M0 真机实测颜色全生效）+ 库内归一化
+  - App-Android / App-iOS：UTS 直挂系统窗口自绘（Android `WindowManager` / iOS `UIWindow`），v0.2.0 起 App 端不再走 `uni.showModal` 原生通道
   - Web：DOM 单例自绘（蒙层点击不关闭、editable 真实渲染 `<input>`）
+  - 微信 / 鸿蒙：`uni.showModal` 原生通道 + 库内归一化
 - **返回值恒定**：`ModalResult` 的 `confirm` / `cancel` 恒存在且互斥（消除各端 cancel 字段缺失差异），`editable` 场景 `content` 携带用户输入
-- **颜色归一化**：校验 `#RGB` / `#RRGGBB` / `#RRGGBBAA`，非法值降级平台默认色并经 fail 回调留痕；App 原生通道不支持 alpha 时自动剥离并留痕；未配置时库内默认确认色 `#007aff` / 取消色 `#000000`（微信端不干预、随平台默认）
+- **颜色归一化**：校验 `#RGB` / `#RRGGBB` / `#RRGGBBAA`，非法值降级平台默认色并经 fail 回调留痕；alpha 在 App / Web 自绘通道全生效，微信 / 鸿蒙原生通道自动剥离并留痕；未配置时库内默认确认色 `#007aff` / 取消色 `#000000`（微信端不干预、随平台默认）
+- **交互语义跨端对齐**：蒙层点击不关闭（对齐微信官方语义）、Android 返回键以取消语义关闭（`cancel = true`）、连续调用后调替换前调
+- **editable 真实输入框**：自绘通道真实渲染输入框，`content` 兼作输入框初始值且光标定位末尾；正文超过屏高 60%（内置阈值）自动限高滚动
 - **受限端文案截断**：微信 / 鸿蒙端按钮文案超 4 字符库内自动截断（消除平台静默行为差异），App / Web 端完整显示
 - **Promise 式 `showModalAsync`**：resolve `ModalResult`，点取消不算失败（与 uni 语义一致）；失败 reject `ModalFail` 结构的 JSON 字符串（全端统一，业务侧 `JSON.parse<ModalFail>(err as string)` 还原）
 - **快捷 API `showModalAlert`**：单确定按钮 alert 语义（`title` + 可选 `content`）

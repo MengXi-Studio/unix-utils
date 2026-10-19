@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.2.0] - 2026-10-11
+## [0.2.0] - 2026-10-19
 
 Second release: the modal module (a cross-platform wrapper around `uni.showModal`).
 
@@ -9,10 +9,13 @@ Second release: the modal module (a cross-platform wrapper around `uni.showModal
 - **modal module**: a cross-platform wrapper around `uni.showModal` covering Android / iOS / Web / WeChat / HarmonyOS (five platforms); business code imports uniformly via `import { showModal } from '@/uni_modules/unix-utils'`
 - **Full parameter alignment**: `title / content / showCancel / cancelText / cancelColor / confirmText / confirmColor / editable / placeholderText / success / fail / complete` are isomorphic to `uni.showModal`, making migration zero-cost; all fields are optional except the callbacks
 - **Per-platform hybrid channels** (automatic dispatch, zero configuration for business code):
-  - App / WeChat / HarmonyOS: the native `uni.showModal` channel (colors verified fully effective in M0 real-device testing) + in-library normalization
+  - App-Android / App-iOS: UTS direct attachment to system windows with self-drawing (Android `WindowManager` / iOS `UIWindow`); since v0.2.0 the App side no longer uses the native `uni.showModal` channel
   - Web: self-drawn DOM singleton (mask taps do not close the dialog; `editable` genuinely rendered as an `<input>`)
+  - WeChat / HarmonyOS: the native `uni.showModal` channel + in-library normalization
 - **Consistent result values**: `confirm` / `cancel` in `ModalResult` always exist and are mutually exclusive (eliminating cross-platform differences where the cancel field may be missing); with `editable`, `content` carries the user input
-- **Color normalization**: validates `#RGB` / `#RRGGBB` / `#RRGGBBAA`; invalid values fall back to the platform default color with a trace left via the fail callback; when the App native channel does not support alpha, it is stripped automatically with a trace left; when unconfigured, the library defaults are confirm `#007aff` / cancel `#000000` (WeChat is left untouched, following the platform default)
+- **Color normalization**: validates `#RGB` / `#RRGGBB` / `#RRGGBBAA`; invalid values fall back to the platform default color with a trace left via the fail callback; alpha is fully effective on the App / Web self-drawn channels, while WeChat / HarmonyOS native channels strip it automatically with a trace left; when unconfigured, the library defaults are confirm `#007aff` / cancel `#000000` (WeChat is left untouched, following the platform default)
+- **Cross-platform aligned interaction semantics**: mask taps never close the dialog (aligned with WeChat's official semantics); the Android back button closes it with cancel semantics (`cancel = true`); consecutive calls replace the previous dialog
+- **Real editable input**: the self-drawn channels really render an input, with `content` doubling as its initial value and the cursor placed at the end; body text taller than 60% of the screen (built-in threshold) is height-capped and scrolls
 - **Button text truncation on restricted platforms**: on WeChat / HarmonyOS, button text longer than 4 characters is truncated in the library (eliminating silent platform behavior differences); App / Web display the full text
 - **Promise-style `showModalAsync`**: resolves with `ModalResult`; tapping cancel does not count as a failure (consistent with uni semantics); failures reject with a JSON string of the `ModalFail` structure (unified across all platforms; business code restores it via `JSON.parse<ModalFail>(err as string)`)
 - **Shortcut API `showModalAlert`**: single-confirm-button alert semantics (`title` + optional `content`)

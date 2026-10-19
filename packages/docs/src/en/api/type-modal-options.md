@@ -38,11 +38,11 @@ export type ModalOptions = {
 | Field | Type | Required | Default | Description & per-platform behavior |
 | --- | --- | --- | --- | --- |
 | `title` | `string \| null` | ✗ | — | Title; at least one of `title` and `content` must be non-empty, otherwise `fail` 1001 (`param: 'title'`) |
-| `content` | `string \| null` | ✗ | — | Content; on native channels (App / WeChat / HarmonyOS) it doubles as the input's initial value when `editable`; on the Web self-drawn channel `content` still shows as text and the input starts empty |
+| `content` | `string \| null` | ✗ | — | Content; doubles as the input's initial value when `editable` (cursor at the end on the App / Web self-drawn channels, cursor position decided by the platform on WeChat / HarmonyOS native channels) |
 | `showCancel` | `boolean` | ✗ | `true` | Whether to show the cancel button; `false` gives a single-confirm-button (alert form) |
 | `cancelText` / `confirmText` | `string \| null` | ✗ | `'取消'` / `'确定'` | Button texts; truncated in-library beyond 4 characters on WeChat / HarmonyOS (silent), full display on App / Web |
-| `cancelColor` / `confirmColor` | `string \| null` | ✗ | Platform default | Button colors; only hexadecimal is accepted: `#RGB` expanded, `#RRGGBB`, `#RRGGBBAA` (alpha preserved only on Web self-drawn, stripped with a trace on native); invalid values fall back to the platform default color + `fail` trace (2001); `null` passes through the platform default color (Web self-drawn falls back to `'#000000'` / `'#007aff'`) |
-| `editable` | `boolean` | ✗ | `false` | Whether the dialog is editable; the Web self-drawn channel really renders an `<input>` |
+| `cancelColor` / `confirmColor` | `string \| null` | ✗ | Platform default | Button colors; only hexadecimal is accepted: `#RGB` expanded, `#RRGGBB`, `#RRGGBBAA` (alpha fully effective on the App / Web self-drawn channels, stripped with a trace on WeChat / HarmonyOS native channels); invalid values fall back to the platform default color + `fail` trace (2001); `null` passes through the platform default color (Web self-drawn falls back to `'#000000'` / `'#007aff'`) |
+| `editable` | `boolean` | ✗ | `false` | Whether the dialog is editable; the App / Web self-drawn channels really render an input (`content` as the initial value, cursor at the end) |
 | `placeholderText` | `string \| null` | ✗ | `null` | Input placeholder text (takes effect when `editable` is `true`) |
 | `success` | `(res: [ModalResult](#modalresult)) => void` \| `null` | ✗ | `null` | Success callback (both confirm / cancel taps go here) |
 | `fail` | `(err: [ModalFail](/en/api/type-modal-fail)) => void` \| `null` | ✗ | `null` | Failure callback (including fallback notices; errCode 2001 is informational) |
@@ -56,7 +56,7 @@ The success callback result; in-library normalization guarantees `confirm` / `ca
 export type ModalResult = {
 	/** Whether the confirm button was tapped */
 	confirm: boolean
-	/** Whether the cancel button was tapped / the dialog was closed by the mask */
+	/** Whether the cancel button was tapped / the dialog was closed by the Android back button */
 	cancel: boolean
 	/** The text entered by the user when editable is true; always null when not editable */
 	content: string | null

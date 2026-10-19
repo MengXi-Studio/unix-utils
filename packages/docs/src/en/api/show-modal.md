@@ -48,7 +48,8 @@ showModal({
 ## Notes
 
 - **Constant return values**: `ModalResult`'s `confirm` / `cancel` are always present and mutually exclusive (eliminating the missing `cancel` field differences across platforms);
-- **Color validation**: only hexadecimal values are accepted (`#RGB` / `#RRGGBB` / `#RRGGBBAA`); invalid values fall back to the platform default color with a trace via the `fail` callback (errCode 2001); 8-digit alpha colors are preserved only on the Web self-drawn channel — native channels strip the alpha with a trace;
+- **Color validation**: only hexadecimal values are accepted (`#RGB` / `#RRGGBB` / `#RRGGBBAA`); invalid values fall back to the platform default color with a trace via the `fail` callback (errCode 2001); 8-digit alpha colors are fully effective on the App / Web self-drawn channels, while WeChat / HarmonyOS native channels strip the alpha with a trace;
+- **Interaction semantics**: mask taps never close the dialog (aligned with WeChat's official semantics); the Android back button closes it with cancel semantics (`cancel: true`); consecutive calls replace the previous dialog;
 - **Text truncation**: button text beyond 4 characters is truncated in-library on WeChat / HarmonyOS (silent behavior, no `fail` notice); App / Web show it in full;
 - **Parameter error**: when both `title` and `content` are empty, `fail` fires with 1001 (`param: 'title'`) and no dialog is shown;
 - **Fallbacks**: see [Channel Architecture and Fallback](/en/guide/channels#modal-normalization-matrix).

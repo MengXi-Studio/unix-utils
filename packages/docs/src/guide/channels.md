@@ -13,14 +13,15 @@ unix-utils 的核心策略是**分端混合实现**：各端自动选择最优�
 
 > 为什么 App 端要绕开 `uni.showToast` 直挂窗口：原生通道的 `position` 在 Android 仅支持 `bottom`、icon 值不对齐、生命周期绑定不一致——这些表现层差异只有窗口级自绘能消除。而 Android 系统 `Toast` 不支持 icon/mask、iOS 根本没有系统 Toast API，所以直挂窗口自绘是 App 端唯一能「属性全生效」的路径。
 
-modal 模块（v0.2 起）的通道划分不同：
+modal 模块（v0.2 起）的通道划分：
 
 | 端 | 通道 | 实现方式 |
 | --- | --- | --- |
-| App-Android / App-iOS / 微信 / 鸿蒙 | `uni.showModal` 原生 | 直调 + 库内归一化（颜色校验与 alpha 剥离、受限端文案截断、返回值 `confirm` / `cancel` 恒存在互斥） |
-| Web | DOM 单例自绘 | 蒙层 + 居中卡片 + 按钮行 + `input`（editable），蒙层点击不关闭，文案与 alpha 色完整生效 |
+| App-Android / App-iOS | UTS 直挂系统窗口自绘 | `WindowManager` / `UIWindow` 免注册挂窗 + 蒙层 + 居中卡片 + 按钮行 + 真实输入框（editable），v0.2.0 起 App 端不再走 `uni.showModal` 原生通道 |
+| Web | DOM 单例自绘 | body 挂载单例 + 蒙层 + 居中卡片 + 按钮行 + `input`（editable），蒙层点击不关闭，文案与 alpha 色完整生效 |
+| 微信 / 鸿蒙 | `uni.showModal` 原生 | 直调 + 库内归一化（颜色校验与 alpha 剥离、受限端文案截断、返回值 `confirm` / `cancel` 恒存在互斥） |
 
-> 为什么 modal 不做 App 直挂自绘：`uni.showModal` 原生通道的参数在各端语义基本对齐，残余差异（alpha 色、文案截断、返回值缺字段）都能在库内归一化层抹平——自绘收益不抵成本，故 App 端复用原生通道。Web 端自绘是因为 Web 无 `uni.showModal` 可用（或形态不可控），DOM 自绘反而能完整支持 alpha 色与文案不截断。
+> 为什么 modal 也做 App 直挂自绘：`uni.showModal` 原生通道的参数在各端语义基本对齐，残余差异（文案截断、返回值缺字段）大多能在库内归一化层抹平；但 editable 输入框的 `content` 初始值与光标位置控制、alpha 色在原生端被剥离等表现层差异无法归一化。v0.2.0 起 modal 复用 toast 的直挂窗口基建，App 端实现 editable 真实输入框、alpha 色全生效、蒙层点击不关闭、Android 返回键取消语义，弹窗表现与 Web 自绘一致。微信 / 鸿蒙保留原生通道——小程序端自绘会遇到原生组件与原生弹窗的遮挡问题，且原生 modal 参数语义本身对齐，归一化足以抹平。
 
 ## 分发流程
 
@@ -62,21 +63,24 @@ callback 层：success / fail / complete 回调透传，错误结构化
 
 ## modal 参数抹平矩阵
 
-modal 各参数在两条通道下的行为（✅ 全生效 / ⚠️ 降级并留痕）：
+modal 各参数在三条通道下的行为（✅ 全生效 / ⚠️ 降级并留痕）：
 
-| 参数 | App / 微信 / 鸿蒙（原生通道） | Web（自绘通道） |
-| --- | --- | --- |
-| `title` / `content` | ✅ 原生渲染 | ✅ 真实渲染（`textContent` 写入，规避 XSS） |
-| `showCancel` | ✅ | ✅ |
-| `cancelText` / `confirmText` | ⚠️ 微信 / 鸿蒙超 4 字符静默截断（App 完整显示） | ✅ 完整显示 |
-| `cancelColor` / `confirmColor` = `#RGB` / `#RRGGBB` | ✅（`#RGB` 展开为 `#RRGGBB`） | ✅ |
-| `cancelColor` / `confirmColor` = `#RRGGBBAA` | ⚠️ 剥离 alpha 生效，errCode 2001 | ✅ alpha 保留 |
-| 颜色非法值 | ⚠️ 降级平台默认色，errCode 2001 | ⚠️ 回退内置默认色，errCode 2001 |
-| `editable` | ✅（`content` 兼作输入框初始值） | ✅ 真实渲染 `<input>`（`content` 显示为文本、输入框初始为空） |
-| `placeholderText` | ✅ | ✅ |
-| 返回值 `confirm` / `cancel` | ✅ 库内归一化恒存在且互斥 | ✅ |
-| 蒙层点击 | 原生行为（各端均不关闭） | 不关闭（仅按钮可关闭） |
-| 生命周期 | 页面级模态，阻塞交互 | DOM 单例，SPA 内存活 |
+| 参数 | App（直挂自绘通道） | Web（自绘通道） | 微信 / 鸿蒙（原生通道） |
+| --- | --- | --- | --- |
+| `title` / `content` | ✅ 真实渲染（`textContent` 写入，规避 XSS） | ✅ 真实渲染（`textContent` 写入，规避 XSS） | ✅ 原生渲染 |
+| `showCancel` | ✅ | ✅ | ✅ |
+| `cancelText` / `confirmText` | ✅ 完整显示 | ✅ 完整显示 | ⚠️ 微信 / 鸿蒙超 4 字符静默截断 |
+| `cancelColor` / `confirmColor` = `#RGB` / `#RRGGBB` | ✅（`#RGB` 展开为 `#RRGGBB`） | ✅（`#RGB` 展开为 `#RRGGBB`） | ✅（`#RGB` 展开为 `#RRGGBB`） |
+| `cancelColor` / `confirmColor` = `#RRGGBBAA` | ✅ alpha 全生效 | ✅ alpha 全生效 | ⚠️ 剥离 alpha 生效，errCode 2001 |
+| 颜色非法值 | ⚠️ 回退内置默认色，errCode 2001 | ⚠️ 回退内置默认色，errCode 2001 | ⚠️ 降级平台默认色，errCode 2001 |
+| `editable` | ✅ 真实渲染输入框（`content` 兼作初始值、光标定位末尾） | ✅ 真实渲染 `<input>`（`content` 兼作初始值、光标定位末尾） | ✅（`content` 兼作输入框初始值，光标位置由平台决定） |
+| `placeholderText` | ✅ | ✅ | ✅ |
+| 正文限高滚动 | ✅ 超屏高 60% 限高滚动 | ✅ 超屏高 60% 限高滚动 | ✅ 原生行为 |
+| 返回值 `confirm` / `cancel` | ✅ 恒存在且互斥 | ✅ 恒存在且互斥 | ✅ 库内归一化恒存在且互斥 |
+| 蒙层点击 | 不关闭（仅按钮可关闭） | 不关闭（仅按钮可关闭） | 原生行为（不关闭） |
+| Android 返回键 | 以取消语义关闭（`cancel: true`） | —（无系统返回键） | —（返回键作用于页面导航） |
+| 连续调用 | 单例替换 | 单例替换 | ✅ 替换 |
+| 生命周期 | 系统窗口级 | DOM 单例，SPA 内存活 | 页面级模态，阻塞交互 |
 
 ## 降级感知：fail 回调
 
@@ -127,5 +131,5 @@ modal 特有：`title` 与 `content` 均为空时走 `fail` 1001（`param: 'titl
 ## 已知约束
 
 - **App 端**：直挂窗口盖过页面树全部内容（含原生 tabbar 之上），但 `SurfaceView` 类独立图层（video 原生层、地图）与系统 UI（状态栏 / 导航栏 / 系统弹窗）仍在之上——普通业务场景不受影响；
-- **App 端 mask**：蒙层拦截触摸但不消费返回键，Android 返回键仍作用于业务页面栈；
+- **App 端 toast mask**：蒙层拦截触摸但不消费返回键，Android 返回键仍作用于业务页面栈（modal 不同：返回键以取消语义关闭弹窗）；
 - **小程序端自绘的取舍**：微信端如需自绘会遇到原生组件（video / map / camera）及原生弹窗的遮挡问题，因此微信 / 鸿蒙保留原生通道是经过权衡的选择。

@@ -43,12 +43,12 @@ Text defaults to `'取消'` / `'确定'` (exported constants `DEFAULT_CANCEL_TEX
 
 Button colors only accept hexadecimal; each form is normalized in-library:
 
-| Input | App / WeChat / HarmonyOS native channel | Web self-drawn channel |
+| Input | App / Web self-drawn channels | WeChat / HarmonyOS native channel |
 | --- | --- | --- |
 | `#RGB` | ✅ Expanded to `#RRGGBB` | ✅ Expanded to `#RRGGBB` |
 | `#RRGGBB` | ✅ Applied directly | ✅ Applied directly |
-| `#RRGGBBAA` | ⚠️ Alpha stripped then applied, `fail` trace (errCode 2001) | ✅ Alpha preserved |
-| Invalid values (named colors / missing `#` / wrong length / non-hex characters) | ⚠️ Falls back to the platform default color, trace (2001, `param` names the field) | ⚠️ Falls back to the built-in default color, trace (2001) |
+| `#RRGGBBAA` | ✅ Alpha fully effective | ⚠️ Alpha stripped then applied, `fail` trace (errCode 2001) |
+| Invalid values (named colors / missing `#` / wrong length / non-hex characters) | ⚠️ Falls back to the built-in default color, trace (2001, `param` names the field) | ⚠️ Falls back to the platform default color, trace (2001) |
 
 Basis from M0 testing: 8-digit colors and named colors silently fall back to the default color on native platforms without errors — the library validates explicitly so fallbacks are perceivable.
 
@@ -62,7 +62,7 @@ The App / Web channels have no truncation; everything takes effect. Button text 
 showModal({
 	title: '重命名',
 	editable: true,
-	content: '未命名文件夹',   // native channels: doubles as the input's initial value
+	content: '未命名文件夹',   // doubles as the input's initial value when editable
 	placeholderText: '请输入名称',
 	success: (res) => {
 		if (res.confirm) rename(res.content) // the entered text; always null on cancel
@@ -70,8 +70,8 @@ showModal({
 })
 ```
 
-- App / WeChat / HarmonyOS native channels: `content` doubles as the input's initial value (uni native behavior);
-- Web self-drawn channel: a real `<input>` is rendered; `content` still shows as text and the input starts empty (a presentation-layer difference, see [Channels](/en/guide/channels#modal-normalization-matrix));
+- App / Web self-drawn channels: a real input is rendered, with `content` doubling as its initial value and the cursor placed at the end; body text taller than 60% of the screen (built-in threshold) is height-capped and scrolls;
+- WeChat / HarmonyOS native channels: `content` doubles as the input's initial value (uni native behavior), with the cursor position decided by the platform (a presentation-layer remnant, see [Channels](/en/guide/channels#modal-normalization-matrix));
 - `placeholderText` only takes effect when `editable: true`.
 
 ## Promise Style and alert Semantics
@@ -103,10 +103,20 @@ configureModal({
 - When `showModal` omits a field, the global default is used; when the global default is unset, the library built-in default text / platform default color is used;
 - Global defaults only affect default values; they do not change any fallback behavior.
 
+## Interaction Behavior
+
+The following semantics are aligned across platforms (actively implemented by the App / Web self-drawn channels; the WeChat / HarmonyOS native channel behaves the same):
+
+- **Mask taps never close the dialog**: aligned with WeChat's official semantics — only the buttons close it;
+- **Android back button**: closes the dialog with cancel semantics (`cancel: true`);
+- **Consecutive calls**: a later call replaces the previous dialog (singleton reuse);
+- **Body text height capping**: body text taller than 60% of the screen (built-in threshold) is height-capped and scrolls, preventing long content from overflowing the screen.
+
 ## Lifecycle
 
-- App / WeChat / HarmonyOS go through the `uni.showModal` native channel: a page-level modal that blocks interaction until the user taps;
-- The Web self-drawn channel is a DOM singleton (mask + centered card) that survives within the SPA; tapping the mask does not close it — only the buttons do.
+- The App side uses UTS direct attachment to system windows with self-drawing (Android `WindowManager` / iOS `UIWindow`), a system-window-level modal;
+- The Web self-drawn channel is a DOM singleton (mask + centered card) that survives within the SPA;
+- WeChat / HarmonyOS go through the `uni.showModal` native channel: a page-level modal that blocks interaction until the user taps.
 
 ## Next Steps
 

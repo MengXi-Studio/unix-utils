@@ -40,7 +40,7 @@ export type ModalErrorCode = 1001 | 2001
 | Value | Meaning | Trigger scenarios |
 | --- | --- | --- |
 | `1001` | Invalid parameter | Both `title` and `content` are empty (`param: 'title'`, no dialog shown); native API call failure (`param: null`, native `errMsg` passed through) |
-| `2001` | Parameter unsupported on the current platform, fallen back (informational) | Invalid color (falls back to the platform default color, `param` names the field); 8-digit alpha color on native channels (alpha stripped, `param` names the field) |
+| `2001` | Parameter unsupported on the current platform, fallen back (informational) | Invalid color (falls back to the platform default color, `param` names the field); 8-digit alpha color on WeChat / HarmonyOS native channels (alpha stripped, `param` names the field) |
 
 > Unlike toast, modal does not export error-code constants at the entry — compare against the literals `1001` / `2001` directly (the type is a literal union, so values other than 1001 / 2001 cannot pass type checking).
 

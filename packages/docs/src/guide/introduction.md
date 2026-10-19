@@ -32,7 +32,7 @@ modal 同理。原生 `uni.showModal` 的主要差异：
 | **按钮文案截断** | 微信 / 鸿蒙按钮文案超 4 字符受平台约束 |
 | **错误信息粗糙** | 失败仅 `errCode` + `errMsg`，缺少「哪个参数、哪个端不支持」的结构化信息 |
 
-unix-utils 用一条 `showModal` API 抹平这些差异（Web 端 DOM 自绘兜底）。
+unix-utils 用一条 `showModal` API 抹平这些差异（App / Web 走自绘通道，微信 / 鸿蒙原生通道降级留痕）。
 
 ## 两层兼容模型
 
@@ -57,9 +57,9 @@ unix-utils 用一条 `showModal` API 抹平这些差异（Web 端 DOM 自绘兜�
 
 | 端 | toast 通道 | modal 通道 |
 | --- | --- | --- |
-| App-Android / App-iOS | UTS 直挂系统窗口（position / warning / mask 全生效，失败降级 `uni.showToast`） | `uni.showModal` 原生 |
+| App-Android / App-iOS | UTS 直挂系统窗口（position / warning / mask 全生效，失败降级 `uni.showToast`） | UTS 直挂系统窗口自绘（editable / alpha 色全生效） |
 | Web | DOM 单例自绘 | DOM 单例自绘 |
-| 微信 / 鸿蒙 | `uni.showToast` 原生（不支持参数降级留痕） | `uni.showModal` 原生 |
+| 微信 / 鸿蒙 | `uni.showToast` 原生（不支持参数降级留痕） | `uni.showModal` 原生（不支持参数降级留痕） |
 
 详见[通道架构与降级](/guide/channels)。
 
@@ -80,6 +80,7 @@ unix-utils 用一条 `showModal` API 抹平这些差异（Web 端 DOM 自绘兜�
 | modal 返回值恒定 | `ModalResult` 的 `confirm` / `cancel` 恒存在且互斥（消除各端 `cancel` 字段缺失差异） |
 | modal 双轨 + alert | 回调式 `showModal` + Promise 式 `showModalAsync`（点取消不算失败）；`showModalAlert` 单确定按钮一行调用 |
 | modal 全局默认 | `configureModal` 项目级预设按钮文案与颜色 |
+| modal 自绘通道 | App / Web 自绘：editable 真实输入框（`content` 兼作初始值、光标定位末尾）、alpha 色全生效、蒙层点击不关闭；正文超屏高 60% 限高滚动 |
 
 ## 适合谁
 

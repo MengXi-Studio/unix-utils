@@ -32,7 +32,7 @@ The same applies to modal. The main differences of the native `uni.showModal`:
 | **Button text truncation** | Button text is platform-constrained beyond 4 characters on WeChat / HarmonyOS |
 | **Coarse error info** | Failures carry only `errCode` + `errMsg`, lacking structured failure info about "which parameter, which platform" |
 
-unix-utils smooths over these differences with a single `showModal` API (with a DOM self-drawn fallback on Web).
+unix-utils smooths over these differences with a single `showModal` API (App / Web use self-drawn channels; WeChat / HarmonyOS use the native channel with fallback traces).
 
 ## Two-Layer Compatibility Model
 
@@ -57,9 +57,9 @@ Each platform automatically selects the optimal channel — zero configuration f
 
 | Platform | toast channel | modal channel |
 | --- | --- | --- |
-| App-Android / App-iOS | UTS direct attachment to system windows (position / warning / mask all take effect; falls back to `uni.showToast` on failure) | Native `uni.showModal` |
+| App-Android / App-iOS | UTS direct attachment to system windows (position / warning / mask all take effect; falls back to `uni.showToast` on failure) | UTS direct attachment with self-drawing (editable / alpha colors fully effective) |
 | Web | Self-drawn DOM singleton | Self-drawn DOM singleton |
-| WeChat / HarmonyOS | Native `uni.showToast` (unsupported parameters fall back with a trace) | Native `uni.showModal` |
+| WeChat / HarmonyOS | Native `uni.showToast` (unsupported parameters fall back with a trace) | Native `uni.showModal` (unsupported parameters fall back with a trace) |
 
 See [Channel Architecture and Fallback](/en/guide/channels) for details.
 
@@ -80,6 +80,7 @@ See [Channel Architecture and Fallback](/en/guide/channels) for details.
 | modal constant return values | `ModalResult`'s `confirm` / `cancel` are always present and mutually exclusive (eliminating missing `cancel` field differences across platforms) |
 | modal dual-track + alert | Callback-style `showModal` + Promise-style `showModalAsync` (canceling does not count as failure); `showModalAlert`, a one-line single-confirm-button call |
 | modal global defaults | `configureModal` presets button texts and colors at the project level |
+| modal self-drawn channels | App / Web self-drawn: real editable input (`content` as the initial value, cursor at the end), full alpha color support, mask taps never close; body text taller than 60% of the screen is height-capped and scrolls |
 
 ## Who Is It For
 

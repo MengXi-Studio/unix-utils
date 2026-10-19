@@ -43,7 +43,7 @@ features:
     details: configureToast / configureModal preset styles at project level for consistency across pages; pass null to a field to keep the library built-in default
   - icon: 🪟
     title: Modal Dialogs (v0.2.0)
-    details: showModal mirrors uni.showModal for zero-cost migration; confirm / cancel are always present and mutually exclusive (eliminating missing return-value field differences); hexadecimal color validation with alpha stripping and restricted-platform text truncation; fallbacks leave traces via the fail callback
+    details: showModal mirrors uni.showModal for zero-cost migration; confirm / cancel are always present and mutually exclusive; App / Web self-drawn channels (real editable input, full alpha color support, mask taps never close), WeChat / HarmonyOS native channel falls back automatically with traces via the fail callback
   - icon: 💪
     title: Strongly-Typed UTS
     details: All ToastOptions / ModalOptions fields are optional except the callbacks; icon / position / error codes are literal union types; UTS source distribution is compiled on the fly by each platform's toolchain (JS / Kotlin / Swift)
@@ -51,7 +51,3 @@ features:
     title: Dual-Track Distribution
     details: A standard uni_modules UTS plugin — import directly from the DCloud plugin market without review, or install via npm and sync into your project's uni_modules/ with a one-line cp; introduces no third-party UI dependencies
 ---
-
-## Quick Start Path
-
-[Introduction](/en/guide/introduction) → [Installation](/en/guide/installation) → [Getting Started](/en/guide/getting-started) → [Toast](/en/guide/toast) → [Modal](/en/guide/modal) → [Channel Architecture & Fallback](/en/guide/channels) → [API Reference](/en/api/show-toast)

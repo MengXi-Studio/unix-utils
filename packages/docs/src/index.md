@@ -43,7 +43,7 @@ features:
     details: configureToast / configureModal 项目级预设，多页面提示风格统一；字段传 null 沿用库内置默认
   - icon: 🪟
     title: Modal 弹窗（v0.2.0）
-    details: showModal 与 uni.showModal 同构迁移零成本，confirm / cancel 恒存在互斥（消除各端返回值缺字段差异），颜色 16 进制校验与 alpha 剥离、按钮文案受限端截断，降级经 fail 回调留痕
+    details: showModal 与 uni.showModal 同构迁移零成本，confirm / cancel 恒存在互斥；App / Web 自绘通道（editable 真实输入框、alpha 色全生效、蒙层点击不关闭），微信 / 鸿蒙原生通道自动降级经 fail 回调留痕
   - icon: 💪
     title: 强类型 UTS
     details: ToastOptions / ModalOptions 除回调外全可选字段，icon / position / 错误码为字面量联合类型；UTS 源分发由各端编译链现场编译（JS / Kotlin / Swift）
@@ -51,7 +51,3 @@ features:
     title: 双轨分发
     details: 标准 uni_modules UTS 插件——插件市场免审核直接导入，或 npm 安装后一行 cp 同步到工程 uni_modules/，不引入任何第三方 UI 依赖
 ---
-
-## 快速上手路径
-
-[介绍](/guide/introduction) → [安装](/guide/installation) → [快速开始](/guide/getting-started) → [Toast 提示](/guide/toast) → [Modal 弹窗](/guide/modal) → [通道架构与降级](/guide/channels) → [API 参考](/api/show-toast)
