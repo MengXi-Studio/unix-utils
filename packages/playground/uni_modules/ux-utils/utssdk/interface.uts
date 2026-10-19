@@ -135,7 +135,7 @@ export type ModalErrorCode = 1001 | 2001
 export type ModalResult = {
 	/** 是否点击了确认按钮 */
 	confirm: boolean
-	/** 是否点击了取消按钮 / 蒙层关闭 */
+	/** 是否点击了取消按钮 / Android 返回键关闭 */
 	cancel: boolean
 	/** editable 为 true 时用户输入的文本；非 editable 恒 null */
 	content: string | null
