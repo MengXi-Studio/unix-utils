@@ -1,19 +1,27 @@
 {
-    "name" : "unix-utils-playground",
-    "appid" : "__UNI__B6A50A8",
-    "description" : "@meng-xi/unix-utils 示例项目",
-    "versionName" : "0.1.0",
-    "versionCode" : "001",
-    "uni-app-x" : {
-        "styleIsolationVersion" : "2",
-        "vapor" : true,
-        "vapor-render-target" : "bytecode"
-    },
-    "vueVersion" : "3",
-    "uniStatistics" : {
-        "enable" : false
-    },
-    "mp-weixin" : {
-        "appid" : null
-    }
+	"name": "unix-utils-playground",
+	"appid": "__UNI__B6A50A8",
+	"description": "@meng-xi/unix-utils 示例项目",
+	"versionName": "0.1.0",
+	"versionCode": "001",
+	"uni-app-x": {
+		"styleIsolationVersion": "2"
+	},
+	"vueVersion": "3",
+	"uniStatistics": {
+		"enable": false
+	},
+	"mp-weixin": {
+		"appid": null
+	},
+	"app-android": {
+		"distribute": {
+			"abiFilters": [
+				"armeabi-v7a",
+				"arm64-v8a",
+				"x86",
+				"x86_64"
+			]
+		}
+	}
 }

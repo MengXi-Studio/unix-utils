@@ -12,15 +12,9 @@
 			"root": "pages-sub",
 			"pages": [
 				{
-					"path": "toast-basic/toast-basic",
+					"path": "modal-async/modal-async",
 					"style": {
-						"navigationBarTitleText": "toast 快捷 API"
-					}
-				},
-				{
-					"path": "toast-interact/toast-interact",
-					"style": {
-						"navigationBarTitleText": "toast 交互与降级"
+						"navigationBarTitleText": "Promise 异步"
 					}
 				},
 				{
@@ -30,33 +24,9 @@
 					}
 				},
 				{
-					"path": "modal-async/modal-async",
-					"style": {
-						"navigationBarTitleText": "Promise 异步"
-					}
-				},
-				{
 					"path": "modal-color/modal-color",
 					"style": {
 						"navigationBarTitleText": "颜色体系"
-					}
-				},
-				{
-					"path": "modal-text/modal-text",
-					"style": {
-						"navigationBarTitleText": "文案与滚动"
-					}
-				},
-				{
-					"path": "modal-input/modal-input",
-					"style": {
-						"navigationBarTitleText": "输入能力"
-					}
-				},
-				{
-					"path": "modal-interact/modal-interact",
-					"style": {
-						"navigationBarTitleText": "交互行为"
 					}
 				},
 				{
@@ -72,9 +42,39 @@
 					}
 				},
 				{
+					"path": "modal-input/modal-input",
+					"style": {
+						"navigationBarTitleText": "输入能力"
+					}
+				},
+				{
+					"path": "modal-interact/modal-interact",
+					"style": {
+						"navigationBarTitleText": "交互行为"
+					}
+				},
+				{
 					"path": "modal-probe/modal-probe",
 					"style": {
 						"navigationBarTitleText": "平台原生探针"
+					}
+				},
+				{
+					"path": "modal-text/modal-text",
+					"style": {
+						"navigationBarTitleText": "文案与滚动"
+					}
+				},
+				{
+					"path": "toast-basic/toast-basic",
+					"style": {
+						"navigationBarTitleText": "toast 快捷 API"
+					}
+				},
+				{
+					"path": "toast-interact/toast-interact",
+					"style": {
+						"navigationBarTitleText": "toast 交互与降级"
 					}
 				}
 			]
