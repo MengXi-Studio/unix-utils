@@ -1,0 +1,28 @@
+import type { ModalResult, ModalFail } from '@/uni_modules/ux-utils'
+
+/**
+ * ModalResult 统一摘要（confirm / cancel / content）
+ * 供 modal 各专题页日志区复用，避免每页重复拼装
+ */
+export function describeResult(res: ModalResult): string {
+	const confirmStr = res.confirm ? 'true' : 'false'
+	const cancelStr = res.cancel ? 'true' : 'false'
+	let s = 'confirm=' + confirmStr + ' cancel=' + cancelStr
+	const content = res.content
+	if (content != null) {
+		s += ' content=' + content
+	}
+	return s
+}
+
+/**
+ * ModalFail 统一摘要（errCode / errMsg / param / platform）
+ */
+export function describeFail(err: ModalFail): string {
+	let s = 'errCode=' + err.errCode.toString() + ' errMsg=' + err.errMsg
+	const param = err.param
+	if (param != null) {
+		s += ' param=' + param
+	}
+	return s + ' platform=' + err.platform
+}

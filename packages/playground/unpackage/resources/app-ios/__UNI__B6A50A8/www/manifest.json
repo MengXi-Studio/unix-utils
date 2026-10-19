@@ -15,8 +15,8 @@
   "app-ios": {
     "distribute": {
       "modules": {
-        "uni-getSystemInfo": {},
         "uni-prompt": {},
+        "uni-getSystemInfo": {},
         "uni-form": {}
       }
     }

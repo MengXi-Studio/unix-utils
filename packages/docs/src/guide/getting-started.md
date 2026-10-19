@@ -1,6 +1,6 @@
 # 快速开始
 
-本页带你跑通 unix-utils 的 toast 模块：发出第一条提示、处理失败、使用快捷 API。
+本页带你跑通 unix-utils 的两个模块：发出第一条提示、弹出第一个模态弹窗、处理失败、使用快捷 API。
 
 ## 导入
 
@@ -75,8 +75,52 @@ configureToast({
 
 字段传 `null` 表示沿用库内置默认（1500ms / `'success'` / `false`）。详见 [configureToast()](/api/configure-toast)。
 
+## 弹出第一个模态弹窗（modal 模块）
+
+```ts
+import { showModal } from '@/uni_modules/unix-utils'
+
+// 与 uni.showModal 同构，迁移零成本
+showModal({
+	title: '删除确认',
+	content: '删除后不可恢复，是否继续？',
+	confirmColor: '#ff0000',
+	success: (res) => {
+		if (res.confirm) doDelete() // confirm / cancel 恒存在且互斥
+	}
+})
+```
+
+## modal 的 Promise 式、alert 语义与全局默认
+
+```ts
+import {
+	showModalAsync,
+	showModalAlert,
+	configureModal
+} from '@/uni_modules/unix-utils'
+
+// Promise 式：点取消不算失败（resolve），失败 reject ModalFail 结构的 JSON 字符串（全端统一，JSON.parse<ModalFail> 还原）
+const res = await showModalAsync({ title: '保存修改', content: '是否保存当前修改？' })
+if (res.confirm) save()
+
+// alert 语义（单确定按钮）
+showModalAlert('提示', '操作已完成')
+
+// 全局默认：字段传 null 表示沿用库内置默认 / 平台默认
+configureModal({
+	confirmText: '知道了',
+	confirmColor: '#00aa00',
+	cancelText: null,
+	cancelColor: null
+})
+```
+
+详见 [showModal()](/api/show-modal) 与 [Modal 弹窗](./modal)。
+
 ## 下一步
 
 - 了解 `icon` / `position` 等参数在各端的行为：[Toast 提示](./toast)；
+- 了解 modal 按钮颜色、可输入等特性：[Modal 弹窗](./modal)；
 - 想知道降级何时发生、如何感知：[通道架构与降级](./channels)；
-- 完整参数表：[ToastOptions](/api/type-toast-options)。
+- 完整参数表：[ToastOptions](/api/type-toast-options) / [ModalOptions](/api/type-modal-options)。

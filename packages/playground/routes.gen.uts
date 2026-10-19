@@ -1,0 +1,69 @@
+/**
+ * 本文件由 @meng-xi/unix-router/vite-plugin 自动生成，请勿整体手改。
+ * preserveRouteChanges 已开启：重新生成时保留你追加的自定义字段与整条自定义路由；
+ * 页面级声明请使用页面内的 defineUniPage 宏或 <route-config> 块。
+ */
+import type { RouteConfig, RouteMeta } from '@/uni_modules/ux-router/utssdk/index.uts'
+
+export const routes: RouteConfig[] = [
+	{
+		path: 'pages/index/index',
+		name: 'home',
+		meta: { title: 'unix-utils' },
+	},
+	{
+		path: 'pages-sub/toast-basic/toast-basic',
+		name: 'toast-basic',
+		meta: { title: 'toast 快捷 API' },
+	},
+	{
+		path: 'pages-sub/toast-interact/toast-interact',
+		name: 'toast-interact',
+		meta: { title: 'toast 交互与降级' },
+	},
+	{
+		path: 'pages-sub/modal-basic/modal-basic',
+		name: 'modal-basic',
+		meta: { title: '基础弹窗' },
+	},
+	{
+		path: 'pages-sub/modal-async/modal-async',
+		name: 'modal-async',
+		meta: { title: 'Promise 异步' },
+	},
+	{
+		path: 'pages-sub/modal-color/modal-color',
+		name: 'modal-color',
+		meta: { title: '颜色体系' },
+	},
+	{
+		path: 'pages-sub/modal-text/modal-text',
+		name: 'modal-text',
+		meta: { title: '文案与滚动' },
+	},
+	{
+		path: 'pages-sub/modal-input/modal-input',
+		name: 'modal-input',
+		meta: { title: '输入能力' },
+	},
+	{
+		path: 'pages-sub/modal-interact/modal-interact',
+		name: 'modal-interact',
+		meta: { title: '交互行为' },
+	},
+	{
+		path: 'pages-sub/modal-config/modal-config',
+		name: 'modal-config',
+		meta: { title: '全局配置' },
+	},
+	{
+		path: 'pages-sub/modal-error/modal-error',
+		name: 'modal-error',
+		meta: { title: '校验与降级' },
+	},
+	{
+		path: 'pages-sub/modal-probe/modal-probe',
+		name: 'modal-probe',
+		meta: { title: '平台原生探针' },
+	},
+]

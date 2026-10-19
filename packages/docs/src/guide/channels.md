@@ -13,6 +13,16 @@ unix-utils 的核心策略是**分端混合实现**：各端自动选择最优�
 
 > 为什么 App 端要绕开 `uni.showToast` 直挂窗口：原生通道的 `position` 在 Android 仅支持 `bottom`、icon 值不对齐、生命周期绑定不一致——这些表现层差异只有窗口级自绘能消除。而 Android 系统 `Toast` 不支持 icon/mask、iOS 根本没有系统 Toast API，所以直挂窗口自绘是 App 端唯一能「属性全生效」的路径。
 
+modal 模块（v0.2 起）的通道划分：
+
+| 端 | 通道 | 实现方式 |
+| --- | --- | --- |
+| App-Android / App-iOS | UTS 直挂系统窗口自绘 | `WindowManager` / `UIWindow` 免注册挂窗 + 蒙层 + 居中卡片 + 按钮行 + 真实输入框（editable），v0.2.0 起 App 端不再走 `uni.showModal` 原生通道 |
+| Web | DOM 单例自绘 | body 挂载单例 + 蒙层 + 居中卡片 + 按钮行 + `input`（editable），蒙层点击不关闭，文案与 alpha 色完整生效 |
+| 微信 / 鸿蒙 | `uni.showModal` 原生 | 直调 + 库内归一化（颜色校验与 alpha 剥离、受限端文案截断、返回值 `confirm` / `cancel` 恒存在互斥） |
+
+> 为什么 modal 也做 App 直挂自绘：`uni.showModal` 原生通道的参数在各端语义基本对齐，残余差异（文案截断、返回值缺字段）大多能在库内归一化层抹平；但 editable 输入框的 `content` 初始值与光标位置控制、alpha 色在原生端被剥离等表现层差异无法归一化。v0.2.0 起 modal 复用 toast 的直挂窗口基建，App 端实现 editable 真实输入框、alpha 色全生效、蒙层点击不关闭、Android 返回键取消语义，弹窗表现与 Web 自绘一致。微信 / 鸿蒙保留原生通道——小程序端自绘会遇到原生组件与原生弹窗的遮挡问题，且原生 modal 参数语义本身对齐，归一化足以抹平。
+
 ## 分发流程
 
 ```
@@ -51,6 +61,27 @@ callback 层：success / fail / complete 回调透传，错误结构化
 | 连续调用 | ✅ 复用窗口替换 | ✅ 单例替换 | ✅ 替换 |
 | 生命周期 | ✅ 系统窗口级，跨页面存活 | ✅ SPA 存活 | 与页面绑定（页面关闭即消失） |
 
+## modal 参数抹平矩阵
+
+modal 各参数在三条通道下的行为（✅ 全生效 / ⚠️ 降级并留痕）：
+
+| 参数 | App（直挂自绘通道） | Web（自绘通道） | 微信 / 鸿蒙（原生通道） |
+| --- | --- | --- | --- |
+| `title` / `content` | ✅ 真实渲染（`textContent` 写入，规避 XSS） | ✅ 真实渲染（`textContent` 写入，规避 XSS） | ✅ 原生渲染 |
+| `showCancel` | ✅ | ✅ | ✅ |
+| `cancelText` / `confirmText` | ✅ 完整显示 | ✅ 完整显示 | ⚠️ 微信 / 鸿蒙超 4 字符静默截断 |
+| `cancelColor` / `confirmColor` = `#RGB` / `#RRGGBB` | ✅（`#RGB` 展开为 `#RRGGBB`） | ✅（`#RGB` 展开为 `#RRGGBB`） | ✅（`#RGB` 展开为 `#RRGGBB`） |
+| `cancelColor` / `confirmColor` = `#RRGGBBAA` | ✅ alpha 全生效 | ✅ alpha 全生效 | ⚠️ 剥离 alpha 生效，errCode 2001 |
+| 颜色非法值 | ⚠️ 回退内置默认色，errCode 2001 | ⚠️ 回退内置默认色，errCode 2001 | ⚠️ 降级平台默认色，errCode 2001 |
+| `editable` | ✅ 真实渲染输入框（`content` 兼作初始值、光标定位末尾） | ✅ 真实渲染 `<input>`（`content` 兼作初始值、光标定位末尾） | ✅（`content` 兼作输入框初始值，光标位置由平台决定） |
+| `placeholderText` | ✅ | ✅ | ✅ |
+| 正文限高滚动 | ✅ 超屏高 60% 限高滚动 | ✅ 超屏高 60% 限高滚动 | ✅ 原生行为 |
+| 返回值 `confirm` / `cancel` | ✅ 恒存在且互斥 | ✅ 恒存在且互斥 | ✅ 库内归一化恒存在且互斥 |
+| 蒙层点击 | 不关闭（仅按钮可关闭） | 不关闭（仅按钮可关闭） | 原生行为（不关闭） |
+| Android 返回键 | 以取消语义关闭（`cancel: true`） | —（无系统返回键） | —（返回键作用于页面导航） |
+| 连续调用 | 单例替换 | 单例替换 | ✅ 替换 |
+| 生命周期 | 系统窗口级 | DOM 单例，SPA 内存活 | 页面级模态，阻塞交互 |
+
 ## 降级感知：fail 回调
 
 所有降级都会通过 `fail` 回调返回结构化 [ToastFail](/api/type-toast-fail)，业务可精确感知「哪个参数、哪个端」：
@@ -72,6 +103,23 @@ showToast({
 - errCode `2001`（PLATFORM_UNSUPPORTED）为**信息级**通知：参数已降级、toast 照常显示，业务可选择忽略；
 - errCode `1001`（PARAM_INVALID）为真正的参数错误。
 
+modal 同样走 `fail` 回调返回结构化 [ModalFail](/api/type-modal-fail)（`errSubject: 'unix-utils:modal'`）：
+
+```ts
+showModal({
+	title: '提示',
+	content: '继续操作',
+	confirmColor: 'blue', // 非法颜色：原生通道不支持命名色
+	fail: (err) => {
+		// errCode: 2001（PLATFORM_UNSUPPORTED）
+		// param: 'confirmColor' —— 触发降级的参数名
+		// platform: 'mp-weixin' —— 当前端标识
+	}
+})
+```
+
+modal 特有：`title` 与 `content` 均为空时走 `fail` 1001（`param: 'title'`），弹窗不显示；Promise 式 [showModalAsync](/api/show-modal-async) 下降级（2001）也会 reject（reject 值为 `ModalFail` 结构的 JSON 字符串，全端统一，业务侧 `JSON.parse<ModalFail>(err as string)` 还原）。
+
 ## 表现层三原则
 
 微信 / 鸿蒙端保留原生通道，其残余差异（视觉样式、生命周期绑定）按三原则管理：
@@ -83,5 +131,5 @@ showToast({
 ## 已知约束
 
 - **App 端**：直挂窗口盖过页面树全部内容（含原生 tabbar 之上），但 `SurfaceView` 类独立图层（video 原生层、地图）与系统 UI（状态栏 / 导航栏 / 系统弹窗）仍在之上——普通业务场景不受影响；
-- **App 端 mask**：蒙层拦截触摸但不消费返回键，Android 返回键仍作用于业务页面栈；
+- **App 端 toast mask**：蒙层拦截触摸但不消费返回键，Android 返回键仍作用于业务页面栈（modal 不同：返回键以取消语义关闭弹窗）；
 - **小程序端自绘的取舍**：微信端如需自绘会遇到原生组件（video / map / camera）及原生弹窗的遮挡问题，因此微信 / 鸿蒙保留原生通道是经过权衡的选择。

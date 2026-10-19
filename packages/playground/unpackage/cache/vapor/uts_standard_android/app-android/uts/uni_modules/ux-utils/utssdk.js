@@ -1,0 +1,23 @@
+const { registerUTSInterface, initUTSProxyClass, initUTSElementProxyClass, initUTSProxyFunction } = uni
+
+const moduleName = 'ux-utils'
+export const showToast = initUTSProxyFunction(moduleName, {name: "showToast", methodId: 0, type: "function", keepAlive: false, async: false})
+export const hideToast = initUTSProxyFunction(moduleName, {name: "hideToast", methodId: 1, type: "function", keepAlive: false, async: false})
+export const showToastAsync = initUTSProxyFunction(moduleName, {name: "showToastAsync", methodId: 2, type: "function", keepAlive: false, async: true})
+export const configureToast = initUTSProxyFunction(moduleName, {name: "configureToast", methodId: 3, type: "function", keepAlive: false, async: false})
+export const showToastSuccess = initUTSProxyFunction(moduleName, {name: "showToastSuccess", methodId: 4, type: "function", keepAlive: false, async: false})
+export const showToastError = initUTSProxyFunction(moduleName, {name: "showToastError", methodId: 5, type: "function", keepAlive: false, async: false})
+export const showToastInfo = initUTSProxyFunction(moduleName, {name: "showToastInfo", methodId: 6, type: "function", keepAlive: false, async: false})
+export const showModal = initUTSProxyFunction(moduleName, {name: "showModal", methodId: 7, type: "function", keepAlive: false, async: false})
+export const showModalAsync = initUTSProxyFunction(moduleName, {name: "showModalAsync", methodId: 8, type: "function", keepAlive: false, async: true})
+export const showModalAlert = initUTSProxyFunction(moduleName, {name: "showModalAlert", methodId: 9, type: "function", keepAlive: false, async: false})
+export const configureModal = initUTSProxyFunction(moduleName, {name: "configureModal", methodId: 10, type: "function", keepAlive: false, async: false})
+export const DEFAULT_DURATION = 1500
+export const DEFAULT_ICON = "success"
+export const DEFAULT_MASK = false
+export const TOAST_ERR_PARAM_INVALID = 1001
+export const TOAST_ERR_PLATFORM_UNSUPPORTED = 2001
+export const DEFAULT_CONFIRM_TEXT = "确定"
+export const DEFAULT_CANCEL_TEXT = "取消"
+export const DEFAULT_CONFIRM_COLOR = "#007aff"
+export const DEFAULT_CANCEL_COLOR = "#000000"

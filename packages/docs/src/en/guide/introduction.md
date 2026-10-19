@@ -6,7 +6,7 @@
 - **Strongly typed UTS**: object types defined with `type`, enums defined with literal unions, no `undefined`, strict boolean conditions;
 - **Platform differences converge inside the library**: business code is written once, and platform-specific logic is isolated inside the library via conditional compilation (`#ifdef`).
 
-The current module is **toast**: a full-platform compatibility wrapper around `uni.showToast`.
+The library currently ships with two modules: **toast** (a full-platform compatibility wrapper around `uni.showToast`) and **modal** (a full-platform compatibility wrapper around `uni.showModal`, since v0.2.0).
 
 ## Why You Need It
 
@@ -22,6 +22,17 @@ The native `uni.showToast` of uni-app x behaves noticeably differently across th
 | **Coarse error info** | Failures carry only `errCode` + `errMsg`, lacking structured failure info about "which parameter, which platform" |
 
 unix-utils smooths over these differences with a single `showToast` API.
+
+The same applies to modal. The main differences of the native `uni.showModal`:
+
+| Difference | Current state |
+| --- | --- |
+| **Incomplete return values** | The `cancel` field is missing on some platforms; business code must null-check to distinguish confirm / cancel |
+| **Inconsistent color formats** | Color format support varies across platforms (named colors / 8-digit alpha colors silently fall back to the default color on some platforms, without errors) |
+| **Button text truncation** | Button text is platform-constrained beyond 4 characters on WeChat / HarmonyOS |
+| **Coarse error info** | Failures carry only `errCode` + `errMsg`, lacking structured failure info about "which parameter, which platform" |
+
+unix-utils smooths over these differences with a single `showModal` API (App / Web use self-drawn channels; WeChat / HarmonyOS use the native channel with fallback traces).
 
 ## Two-Layer Compatibility Model
 
@@ -44,11 +55,11 @@ Compatibility differences fall into two layers, where the library's ability to e
 
 Each platform automatically selects the optimal channel — zero configuration for business code:
 
-| Platform | Channel | Description |
+| Platform | toast channel | modal channel |
 | --- | --- | --- |
-| App-Android / App-iOS | UTS direct attachment to system windows | Registration-free window attachment via Android `WindowManager` / iOS `UIWindow`; position / warning / mask all take effect; automatically falls back to `uni.showToast` on failure |
-| Web | Self-drawn DOM singleton | position / warning / no truncation all take effect |
-| WeChat / HarmonyOS | Native `uni.showToast` | Unsupported parameters automatically fall back, with a trace left via the `fail` callback |
+| App-Android / App-iOS | UTS direct attachment to system windows (position / warning / mask all take effect; falls back to `uni.showToast` on failure) | UTS direct attachment with self-drawing (editable / alpha colors fully effective) |
+| Web | Self-drawn DOM singleton | Self-drawn DOM singleton |
+| WeChat / HarmonyOS | Native `uni.showToast` (unsupported parameters fall back with a trace) | Native `uni.showModal` (unsupported parameters fall back with a trace) |
 
 See [Channel Architecture and Fallback](/en/guide/channels) for details.
 
@@ -65,11 +76,16 @@ See [Channel Architecture and Fallback](/en/guide/channels) for details.
 | Reliable hiding | `hideToast` reliably hides toasts on the self-drawn channels (including the position variant) |
 | Structured fallback | `ToastFail.errCode` (1001 invalid parameter / 2001 platform unsupported) + `param` / `platform` for precise locating |
 | Strong typing | Every `ToastOptions` field except `title` is optional; `icon` / `position` are literal union types |
+| modal fully aligned parameters | `title / content / showCancel / cancelText / cancelColor / confirmText / confirmColor / editable / placeholderText` and the callbacks are all preserved — zero migration cost |
+| modal constant return values | `ModalResult`'s `confirm` / `cancel` are always present and mutually exclusive (eliminating missing `cancel` field differences across platforms) |
+| modal dual-track + alert | Callback-style `showModal` + Promise-style `showModalAsync` (canceling does not count as failure); `showModalAlert`, a one-line single-confirm-button call |
+| modal global defaults | `configureModal` presets button texts and colors at the project level |
+| modal self-drawn channels | App / Web self-drawn: real editable input (`content` as the initial value, cursor at the end), full alpha color support, mask taps never close; body text taller than 60% of the screen is height-capped and scrolls |
 
 ## Who Is It For
 
 - **You need consistent toast behavior across platforms**: one API set covers the five platforms, with predictable and perceivable parameter fallbacks.
-- **You are fed up with native toast differences**: unusable position, misaligned icons per platform, WeChat's 7-character truncation — the library handles them all.
+- **You are fed up with native toast / modal differences**: unusable position, misaligned icons per platform, WeChat's 7-character truncation, modal's missing return-value fields — the library handles them all.
 - **You want strong typing with zero dependencies**: UTS source distribution, introducing no third-party UI dependencies.
 
 ## Next Steps

@@ -1,0 +1,95 @@
+<template>
+	<scroll-view style="flex:1">
+		<view class="container">
+			<view class="intro">
+				<text class="intro-title">功能说明</text>
+				<text class="intro-text">configureModal 设置全局默认文案与颜色（后续弹窗全部生效）；字段传 null 恢复库内置默认（'确定' / '取消' 与默认颜色）。</text>
+			</view>
+
+			<text class="section">用例</text>
+			<view class="row">
+				<button size="mini" @click="t14Config">14 设置全局默认</button>
+				<button size="mini" @click="t15Verify">15 验证配置生效</button>
+				<button size="mini" @click="t16Reset">16 重置</button>
+			</view>
+
+			<view class="logs">
+				<view class="logs-head">
+					<text class="logs-title">运行日志</text>
+					<button size="mini" @click="clearLog">清空</button>
+				</view>
+				<text v-for="(line, index) in logs" :key="index" class="log">{{ line }}</text>
+			</view>
+		</view>
+	</scroll-view>
+</template>
+
+<script setup lang="uts">
+	// 页面声明宏：编译期由 @meng-xi/unix-router/vite-plugin 剥离，驱动 pages.json 与路由表生成
+	defineUniPage({
+		title: '全局配置',
+		name: 'modal-config'
+	})
+	import { showModal, configureModal } from '@/uni_modules/ux-utils'
+	import { describeResult, describeFail } from '@/common/test-utils.uts'
+
+	const logs = reactive<string[]>([])
+
+	function log(tag: string, msg: string): void {
+		const line = '[' + tag + '] ' + msg
+		logs.unshift(line)
+		if (logs.length > 200) {
+			logs.splice(200, logs.length - 200)
+		}
+		console.log(line)
+	}
+
+	function clearLog(): void {
+		logs.splice(0, logs.length)
+	}
+
+	/* ===== 14 configureModal 设置全局默认 ===== */
+	function t14Config(): void {
+		configureModal({
+			confirmText: '知道了',
+			cancelText: '再想想',
+			confirmColor: '#00aa00',
+			cancelColor: null
+		})
+		log('14', '已设置全局默认（知道了 / 再想想 / 绿色确认）')
+	}
+
+	/* ===== 15 配置后的默认弹窗（不传覆盖参数） ===== */
+	function t15Verify(): void {
+		showModal({
+			title: '全局默认验证',
+			content: '按钮文案与颜色应来自 configureModal 配置',
+			success: (res) => {
+				log('15', describeResult(res))
+			},
+			fail: (err) => {
+				log('15', 'fail ' + describeFail(err))
+			}
+		})
+	}
+
+	/* ===== 16 configureModal 重置（字段传 null 恢复库内置默认） ===== */
+	function t16Reset(): void {
+		configureModal({
+			confirmText: null,
+			cancelText: null,
+			confirmColor: null,
+			cancelColor: null
+		})
+		showModal({
+			title: '重置验证',
+			content: '按钮应恢复为 确定 / 取消 与默认颜色',
+			success: (res) => {
+				log('16', describeResult(res))
+			},
+			fail: (err) => {
+				log('16', 'fail ' + describeFail(err))
+			}
+		})
+	}
+</script>

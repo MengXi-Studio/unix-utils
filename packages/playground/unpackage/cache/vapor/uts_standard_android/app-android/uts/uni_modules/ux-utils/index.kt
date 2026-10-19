@@ -1,0 +1,1619 @@
+@file:Suppress("UNCHECKED_CAST", "USELESS_CAST", "INAPPLICABLE_JVM_NAME", "UNUSED_ANONYMOUS_PARAMETER", "SENSELESS_COMPARISON", "NAME_SHADOWING", "UNNECESSARY_NOT_NULL_ASSERTION")
+package uts.sdk.modules.uxUtils
+import android.app.Activity
+import android.content.Context
+import android.graphics.Color
+import android.graphics.PixelFormat
+import android.graphics.Typeface
+import android.graphics.drawable.GradientDrawable
+import android.os.IBinder
+import android.util.TypedValue
+import android.view.Gravity
+import android.view.KeyEvent
+import android.view.View
+import android.view.View.OnClickListener
+import android.view.View.OnKeyListener
+import android.view.WindowManager
+import android.widget.EditText
+import android.widget.FrameLayout
+import android.widget.LinearLayout
+import android.widget.ScrollView
+import android.widget.TextView
+import io.dcloud.uniapp.*
+import io.dcloud.uniapp.extapi.*
+import io.dcloud.uniappxv.runtime.*
+import io.dcloud.unicloud.*
+import io.dcloud.uts.*
+import io.dcloud.uts.Map
+import io.dcloud.uts.Set
+import io.dcloud.uts.UTSAndroid
+import io.dcloud.uts.autoregister.UTSAutoRegister
+import kotlin.properties.Delegates
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import io.dcloud.uniapp.extapi.getSystemInfoSync as uni_getSystemInfoSync
+import io.dcloud.uniapp.extapi.showModal as uni_showModal
+import io.dcloud.uniapp.extapi.showToast as uni_showToast
+typealias ToastIcon = String
+typealias ToastPosition = String
+typealias ToastErrorCode = Number
+open class ToastResult (
+    @JsonNotNull
+    open var errMsg: String,
+) : UTSObject(), IUTSSourceMap {
+    override fun `__$getOriginalPosition`(): UTSSourceMapPosition? {
+        return UTSSourceMapPosition("ToastResult", "uni_modules/ux-utils/utssdk/interface.uts", 22, 13)
+    }
+}
+open class ToastFail (
+    @JsonNotNull
+    open var errCode: ToastErrorCode,
+    @JsonNotNull
+    open var errSubject: String,
+    @JsonNotNull
+    open var errMsg: String,
+    open var param: String? = null,
+    @JsonNotNull
+    open var platform: String,
+) : UTSObject(), IUTSSourceMap {
+    override fun `__$getOriginalPosition`(): UTSSourceMapPosition? {
+        return UTSSourceMapPosition("ToastFail", "uni_modules/ux-utils/utssdk/interface.uts", 26, 13)
+    }
+}
+open class ToastOptions (
+    @JsonNotNull
+    open var title: String,
+    open var icon: ToastIcon? = null,
+    open var image: String? = null,
+    open var mask: Boolean? = null,
+    open var duration: Number? = null,
+    open var position: ToastPosition? = null,
+    open var success: ((res: ToastResult) -> Unit)? = null,
+    open var fail: ((err: ToastFail) -> Unit)? = null,
+    open var complete: ((res: Any) -> Unit)? = null,
+) : UTSObject(), IUTSSourceMap {
+    override fun `__$getOriginalPosition`(): UTSSourceMapPosition? {
+        return UTSSourceMapPosition("ToastOptions", "uni_modules/ux-utils/utssdk/interface.uts", 45, 13)
+    }
+}
+open class NormalizedOptions (
+    @JsonNotNull
+    open var title: String,
+    @JsonNotNull
+    open var icon: ToastIcon,
+    open var image: String? = null,
+    @JsonNotNull
+    open var mask: Boolean = false,
+    @JsonNotNull
+    open var duration: Number,
+    open var position: ToastPosition? = null,
+    open var success: ((res: ToastResult) -> Unit)? = null,
+    open var fail: ((err: ToastFail) -> Unit)? = null,
+    open var complete: ((res: Any) -> Unit)? = null,
+) : UTSObject(), IUTSSourceMap {
+    override fun `__$getOriginalPosition`(): UTSSourceMapPosition? {
+        return UTSSourceMapPosition("NormalizedOptions", "uni_modules/ux-utils/utssdk/interface.uts", 66, 13)
+    }
+}
+open class NormalizeResult (
+    @JsonNotNull
+    open var options: NormalizedOptions,
+    @JsonNotNull
+    open var degraded: UTSArray<String>,
+) : UTSObject(), IUTSSourceMap {
+    override fun `__$getOriginalPosition`(): UTSSourceMapPosition? {
+        return UTSSourceMapPosition("NormalizeResult", "uni_modules/ux-utils/utssdk/interface.uts", 78, 13)
+    }
+}
+open class ToastDefaults (
+    open var duration: Number? = null,
+    open var icon: ToastIcon? = null,
+    open var mask: Boolean? = null,
+) : UTSObject(), IUTSSourceMap {
+    override fun `__$getOriginalPosition`(): UTSSourceMapPosition? {
+        return UTSSourceMapPosition("ToastDefaults", "uni_modules/ux-utils/utssdk/interface.uts", 84, 13)
+    }
+}
+typealias ShowToast = (options: ToastOptions) -> Unit
+typealias HideToast = () -> Unit
+typealias ShowToastAsync = (options: ToastOptions) -> UTSPromise<Unit>
+typealias ConfigureToast = (defaults: ToastDefaults) -> Unit
+typealias ShowToastQuick = (title: String) -> Unit
+typealias ModalErrorCode = Number
+open class ModalResult (
+    @JsonNotNull
+    open var confirm: Boolean = false,
+    @JsonNotNull
+    open var cancel: Boolean = false,
+    open var content: String? = null,
+) : UTSObject(), IUTSSourceMap {
+    override fun `__$getOriginalPosition`(): UTSSourceMapPosition? {
+        return UTSSourceMapPosition("ModalResult", "uni_modules/ux-utils/utssdk/interface.uts", 121, 13)
+    }
+}
+open class ModalFail (
+    @JsonNotNull
+    open var errCode: ModalErrorCode,
+    @JsonNotNull
+    open var errSubject: String,
+    @JsonNotNull
+    open var errMsg: String,
+    open var param: String? = null,
+    @JsonNotNull
+    open var platform: String,
+) : UTSObject(), IUTSSourceMap {
+    override fun `__$getOriginalPosition`(): UTSSourceMapPosition? {
+        return UTSSourceMapPosition("ModalFail", "uni_modules/ux-utils/utssdk/interface.uts", 130, 13)
+    }
+}
+open class ModalOptions (
+    open var title: String? = null,
+    open var content: String? = null,
+    open var showCancel: Boolean? = null,
+    open var cancelText: String? = null,
+    open var cancelColor: String? = null,
+    open var confirmText: String? = null,
+    open var confirmColor: String? = null,
+    open var editable: Boolean? = null,
+    open var placeholderText: String? = null,
+    open var success: ((res: ModalResult) -> Unit)? = null,
+    open var fail: ((err: ModalFail) -> Unit)? = null,
+    open var complete: ((res: Any) -> Unit)? = null,
+) : UTSObject(), IUTSSourceMap {
+    override fun `__$getOriginalPosition`(): UTSSourceMapPosition? {
+        return UTSSourceMapPosition("ModalOptions", "uni_modules/ux-utils/utssdk/interface.uts", 148, 13)
+    }
+}
+open class NormalizedModalOptions (
+    @JsonNotNull
+    open var title: String,
+    @JsonNotNull
+    open var content: String,
+    @JsonNotNull
+    open var showCancel: Boolean = false,
+    @JsonNotNull
+    open var cancelText: String,
+    open var cancelColor: String? = null,
+    @JsonNotNull
+    open var confirmText: String,
+    open var confirmColor: String? = null,
+    @JsonNotNull
+    open var editable: Boolean = false,
+    open var placeholderText: String? = null,
+    open var success: ((res: ModalResult) -> Unit)? = null,
+    open var fail: ((err: ModalFail) -> Unit)? = null,
+    open var complete: ((res: Any) -> Unit)? = null,
+) : UTSObject(), IUTSSourceMap {
+    override fun `__$getOriginalPosition`(): UTSSourceMapPosition? {
+        return UTSSourceMapPosition("NormalizedModalOptions", "uni_modules/ux-utils/utssdk/interface.uts", 175, 13)
+    }
+}
+open class NormalizeModalResult (
+    @JsonNotNull
+    open var options: NormalizedModalOptions,
+    @JsonNotNull
+    open var degraded: UTSArray<String>,
+) : UTSObject(), IUTSSourceMap {
+    override fun `__$getOriginalPosition`(): UTSSourceMapPosition? {
+        return UTSSourceMapPosition("NormalizeModalResult", "uni_modules/ux-utils/utssdk/interface.uts", 190, 13)
+    }
+}
+open class ModalDefaults (
+    open var cancelText: String? = null,
+    open var confirmText: String? = null,
+    open var cancelColor: String? = null,
+    open var confirmColor: String? = null,
+) : UTSObject(), IUTSSourceMap {
+    override fun `__$getOriginalPosition`(): UTSSourceMapPosition? {
+        return UTSSourceMapPosition("ModalDefaults", "uni_modules/ux-utils/utssdk/interface.uts", 196, 13)
+    }
+}
+typealias ShowModal = (options: ModalOptions) -> Unit
+typealias ShowModalAsync = (options: ModalOptions) -> UTSPromise<ModalResult>
+typealias ShowModalAlert = (title: String, content: String?) -> Unit
+typealias ConfigureModal = (defaults: ModalDefaults) -> Unit
+typealias ToastIcon__1 = String
+typealias ToastPosition__1 = String
+typealias ToastErrorCode__1 = Number
+val ERR_PARAM_INVALID: ToastErrorCode__1 = 1001
+val ERR_PLATFORM_UNSUPPORTED: ToastErrorCode__1 = 2001
+val BUILTIN_DURATION: Number = 1500
+val BUILTIN_ICON: ToastIcon__1 = "success"
+val BUILTIN_MASK: Boolean = false
+val WECHAT_TITLE_MAX_LENGTH: Number = 7
+val NATIVE_TITLE_MAX_LENGTH: Number = 20
+val TOAST_ERR_SUBJECT: String = "unix-utils:toast"
+fun getPlatform(): String {
+    try {
+        val info = uni_getSystemInfoSync()
+        return info.uniPlatform
+    }
+     catch (e: Throwable) {
+        return "unknown"
+    }
+}
+fun isSelfDrawPlatform(platform: String): Boolean {
+    return true
+}
+var currentDefaults = ToastDefaults(duration = BUILTIN_DURATION, icon = BUILTIN_ICON, mask = BUILTIN_MASK)
+fun configureToastImpl(defaults: ToastDefaults): Unit {
+    currentDefaults = defaults
+}
+fun getToastDefaults(): ToastDefaults {
+    return currentDefaults
+}
+fun truncateTitle(title: String, platform: String): String {
+    if (platform === "mp-weixin") {
+        if (title.length > WECHAT_TITLE_MAX_LENGTH) {
+            return title.substring(0, WECHAT_TITLE_MAX_LENGTH) + "…"
+        }
+        return title
+    }
+    if (platform === "app-harmony") {
+        if (title.length > NATIVE_TITLE_MAX_LENGTH) {
+            return title.substring(0, NATIVE_TITLE_MAX_LENGTH) + "…"
+        }
+    }
+    return title
+}
+fun normalizeIcon(icon: ToastIcon__1, platform: String, degraded: UTSArray<String>): ToastIcon__1 {
+    if (icon === "fail" || icon === "exception") {
+        degraded.push("icon")
+        return "error"
+    }
+    if (icon === "warning") {
+        if (!isSelfDrawPlatform(platform)) {
+            degraded.push("icon")
+            return "none"
+        }
+    }
+    return icon
+}
+fun normalizePosition(position: ToastPosition__1?, platform: String, degraded: UTSArray<String>): ToastPosition__1? {
+    if (position == null) {
+        return null
+    }
+    if (isSelfDrawPlatform(platform)) {
+        return position
+    }
+    degraded.push("position")
+    return null
+}
+fun normalizeImage(image: String?, platform: String, degraded: UTSArray<String>): String? {
+    if (image == null) {
+        return null
+    }
+    if (isSelfDrawPlatform(platform)) {
+        return image
+    }
+    if (image.toLowerCase().endsWith(".gif")) {
+        degraded.push("image")
+        return null
+    }
+    return image
+}
+fun normalize(options: ToastOptions): NormalizeResult {
+    val platform = getPlatform()
+    val defaults = getToastDefaults()
+    val degraded: UTSArray<String> = _uA()
+    val icon: ToastIcon__1 = normalizeIcon(if (options.icon != null) {
+        options.icon!!
+    } else {
+        if (defaults.icon != null) {
+            defaults.icon!!
+        } else {
+            BUILTIN_ICON
+        }
+    }
+    , platform, degraded)
+    val position: ToastPosition__1? = normalizePosition(options.position, platform, degraded)
+    val image: String? = normalizeImage(options.image, platform, degraded)
+    val title: String = truncateTitle(options.title, platform)
+    val mask: Boolean = if (options.mask != null) {
+        options.mask!!
+    } else {
+        if (defaults.mask != null) {
+            defaults.mask!!
+        } else {
+            BUILTIN_MASK
+        }
+    }
+    val duration: Number = if (options.duration != null) {
+        options.duration!!
+    } else {
+        if (defaults.duration != null) {
+            defaults.duration!!
+        } else {
+            BUILTIN_DURATION
+        }
+    }
+    val normalized = NormalizedOptions(title = title, icon = icon, image = image, mask = mask, duration = duration, position = position, success = options.success, fail = options.fail, complete = options.complete)
+    val result = NormalizeResult(options = normalized, degraded = degraded)
+    return result
+}
+fun iconToNativeString(icon: ToastIcon__1): String {
+    if (icon == "success") {
+        return "success"
+    }
+    if (icon == "error") {
+        return "error"
+    }
+    if (icon == "loading") {
+        return "loading"
+    }
+    return "none"
+}
+fun positionToNativeString(position: ToastPosition__1): String {
+    if (position == "top") {
+        return "top"
+    }
+    if (position == "center") {
+        return "center"
+    }
+    return "bottom"
+}
+fun showNative(options: NormalizedOptions): Unit {
+    val platform = getPlatform()
+    uni_showToast(ShowToastOptions(title = options.title, icon = iconToNativeString(options.icon), image = options.image, mask = options.mask, duration = options.duration, position = if (options.position == null) {
+        null
+    } else {
+        positionToNativeString(options.position!!)
+    }
+    , success = fun(_){
+        if (options.success != null) {
+            val r = ToastResult(errMsg = "showToast:ok")
+            options.success!!(r)
+        }
+    }
+    , fail = fun(err: ShowToastFail){
+        if (options.fail != null) {
+            val f = ToastFail(errCode = ERR_PARAM_INVALID, errSubject = TOAST_ERR_SUBJECT, errMsg = err.errMsg, param = null, platform = platform)
+            options.fail!!(f)
+        }
+    }
+    , complete = fun(res: Any){
+        if (options.complete != null) {
+            options.complete!!(res)
+        }
+    }
+    ))
+}
+var toastRoot: View? = null
+var maskRoot: View? = null
+var iconText: TextView? = null
+var titleText: TextView? = null
+var lastMask: Boolean = false
+var lastPosition: String = ""
+var hideTimer: Number = 0
+fun iconEmoji(icon: String): String {
+    if (icon == "success") {
+        return "✓"
+    }
+    if (icon == "error") {
+        return "✕"
+    }
+    if (icon == "warning" || icon == "exception") {
+        return "!"
+    }
+    if (icon == "loading") {
+        return "◌"
+    }
+    return ""
+}
+fun positionGravity(position: String): Int {
+    if (position == "top") {
+        return Gravity.TOP or Gravity.CENTER_HORIZONTAL
+    }
+    if (position == "center") {
+        return Gravity.CENTER
+    }
+    return Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL
+}
+fun screenEdgeOffset(activity: Activity): Int {
+    val h = UTSNumber.from(activity.getResources().getDisplayMetrics().heightPixels)
+    return (h * 0.1).toInt()
+}
+fun dp2pxI(activity: Activity, dp: Number): Int {
+    val density = UTSNumber.from(activity.getResources().getDisplayMetrics().density)
+    return (dp * density).toInt()
+}
+fun dp2pxF(activity: Activity, dp: Number): Float {
+    val density = UTSNumber.from(activity.getResources().getDisplayMetrics().density)
+    return (dp * density).toFloat()
+}
+fun buildCard(activity: Activity, title: String, icon: String): LinearLayout {
+    val card = LinearLayout(activity)
+    card.setOrientation(LinearLayout.VERTICAL)
+    card.setGravity(Gravity.CENTER)
+    val bg = GradientDrawable()
+    bg.setColor(Color.parseColor("#BF000000"))
+    bg.setCornerRadius(dp2pxF(activity, 8.0))
+    card.setBackground(bg)
+    val pad = dp2pxI(activity, 16.0)
+    card.setPadding(pad, pad, pad, pad)
+    card.setMinimumWidth(dp2pxI(activity, 120.0))
+    val emoji = iconEmoji(icon)
+    if (emoji.length > 0) {
+        val iv = TextView(activity)
+        iv.setTextColor(Color.WHITE)
+        iv.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 40.0f)
+        iv.setGravity(Gravity.CENTER)
+        iv.setText(emoji)
+        iv.setPadding(0, 0, 0, dp2pxI(activity, 8.0))
+        card.addView(iv)
+        iconText = iv
+    } else {
+        iconText = null
+    }
+    val tv = TextView(activity)
+    tv.setTextColor(Color.WHITE)
+    tv.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14.0f)
+    tv.setGravity(Gravity.CENTER)
+    tv.setMaxWidth(dp2pxI(activity, 240.0))
+    tv.setText(title)
+    card.addView(tv)
+    titleText = tv
+    return card
+}
+fun buildMask(activity: Activity): FrameLayout {
+    val root = FrameLayout(activity)
+    val dim = GradientDrawable()
+    dim.setColor(Color.parseColor("#80000000"))
+    root.setBackground(dim)
+    return root
+}
+fun updateTexts(icon: String, title: String): Unit {
+    val emoji = iconEmoji(icon)
+    val it = iconText
+    if (it != null) {
+        it.setVisibility(if (emoji.length > 0) {
+            View.VISIBLE
+        } else {
+            View.GONE
+        }
+        )
+        it.setText(emoji)
+    }
+    val tt = titleText
+    if (tt != null) {
+        tt.setText(title)
+    }
+}
+fun removeRootImmediate(view: View): Unit {
+    val act = UTSAndroid.getUniActivity()
+    if (act == null) {
+        return
+    }
+    val activity = act as Activity
+    activity.runOnUiThread(fun(){
+        try {
+            val wm = activity.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+            wm.removeView(view)
+        }
+         catch (e: Throwable) {}
+    }
+    )
+}
+fun scheduleHide(duration: Number): Unit {
+    if (hideTimer != 0) {
+        clearTimeout(hideTimer)
+    }
+    hideTimer = setTimeout(fun(){
+        hideTimer = 0
+        hideWindowToast()
+    }
+    , duration)
+}
+fun buildCardParams(activity: Activity, position: String, token: IBinder): WindowManager.LayoutParams {
+    val params = WindowManager.LayoutParams()
+    params.type = WindowManager.LayoutParams.TYPE_APPLICATION_PANEL
+    params.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+    params.format = PixelFormat.TRANSLUCENT
+    params.width = WindowManager.LayoutParams.WRAP_CONTENT
+    params.height = WindowManager.LayoutParams.WRAP_CONTENT
+    params.gravity = positionGravity(position)
+    if (position == "top") {
+        params.y = screenEdgeOffset(activity)
+    }
+    if (position == "bottom") {
+        params.y = screenEdgeOffset(activity)
+    }
+    params.token = token
+    return params
+}
+fun showWindowToast(title: String, icon: String, mask: Boolean, duration: Number, position: String, fail: ((errMsg: String) -> Unit)?): Unit {
+    val act = UTSAndroid.getUniActivity()
+    if (act == null) {
+        if (fail != null) {
+            fail("getUniActivity() 为 null，无法挂窗")
+        }
+        return
+    }
+    val activity = act as Activity
+    activity.runOnUiThread(fun(){
+        try {
+            val existing = toastRoot
+            val maskChanged = lastMask != mask
+            val positionChanged = lastPosition != position
+            val needRebuildForIcon = iconText == null && iconEmoji(icon).length > 0
+            if (existing != null && !maskChanged && !positionChanged && !needRebuildForIcon) {
+                console.log("[unix-window] 复用已有窗口视图，更新文案 position=" + position, " at uni_modules/ux-utils/utssdk/toast/channels/app/window-android.uts:228")
+                updateTexts(icon, title)
+                scheduleHide(duration)
+                return
+            }
+            if (existing != null) {
+                removeRootImmediate(existing)
+                toastRoot = null
+            }
+            val oldMask = maskRoot
+            if (oldMask != null) {
+                removeRootImmediate(oldMask)
+                maskRoot = null
+            }
+            val token = activity.getWindow().getDecorView().getWindowToken()
+            if (token == null) {
+                if (fail != null) {
+                    fail("windowToken 为 null（页面未就绪），无法挂窗")
+                }
+                return
+            }
+            val wm = activity.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+            if (mask) {
+                val maskParams = WindowManager.LayoutParams()
+                maskParams.type = WindowManager.LayoutParams.TYPE_APPLICATION_PANEL
+                maskParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+                maskParams.format = PixelFormat.TRANSLUCENT
+                maskParams.width = WindowManager.LayoutParams.MATCH_PARENT
+                maskParams.height = WindowManager.LayoutParams.MATCH_PARENT
+                maskParams.token = token
+                val maskView = buildMask(activity)
+                wm.addView(maskView, maskParams)
+                maskRoot = maskView
+            }
+            val cardParams = buildCardParams(activity, position, token)
+            val card = buildCard(activity, title, icon)
+            wm.addView(card, cardParams)
+            toastRoot = card
+            lastMask = mask
+            lastPosition = position
+            console.log("[unix-window] addView 成功 mask=" + mask + " position=" + position + " gravity=" + cardParams.gravity + " y=" + cardParams.y, " at uni_modules/ux-utils/utssdk/toast/channels/app/window-android.uts:272")
+            card.setAlpha(0.0f)
+            card.animate().alpha(1.0f).setDuration(200).start()
+            if (maskRoot != null) {
+                maskRoot!!.setAlpha(0.0f)
+                maskRoot!!.animate().alpha(1.0f).setDuration(200).start()
+            }
+            scheduleHide(duration)
+        }
+         catch (e: Throwable) {
+            if (fail != null) {
+                fail("挂窗异常: " + e.message)
+            }
+        }
+    }
+    )
+}
+fun hideWindowToast(): Unit {
+    if (hideTimer != 0) {
+        clearTimeout(hideTimer)
+        hideTimer = 0
+    }
+    val root = toastRoot
+    val mask = maskRoot
+    if (root == null && mask == null) {
+        return
+    }
+    val act = UTSAndroid.getUniActivity()
+    if (act == null) {
+        return
+    }
+    val activity = act as Activity
+    toastRoot = null
+    maskRoot = null
+    iconText = null
+    titleText = null
+    activity.runOnUiThread(fun(){
+        try {
+            if (root != null) {
+                root.animate().alpha(0.0f).setDuration(200).start()
+            }
+            if (mask != null) {
+                mask.animate().alpha(0.0f).setDuration(200).start()
+            }
+            setTimeout(fun(){
+                val wm = activity.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+                if (root != null) {
+                    try {
+                        wm.removeView(root)
+                    }
+                     catch (e: Throwable) {}
+                }
+                if (mask != null) {
+                    try {
+                        wm.removeView(mask)
+                    }
+                     catch (e: Throwable) {}
+                }
+            }
+            , 220)
+        }
+         catch (e: Throwable) {}
+    }
+    )
+}
+fun iconToSelfDrawString(icon: ToastIcon__1): String {
+    if (icon == "success") {
+        return "success"
+    }
+    if (icon == "error") {
+        return "error"
+    }
+    if (icon == "warning") {
+        return "warning"
+    }
+    if (icon == "loading") {
+        return "loading"
+    }
+    return "none"
+}
+fun positionToSelfDrawString(position: ToastPosition__1?): String {
+    if (position == "top") {
+        return "top"
+    }
+    if (position == "center") {
+        return "center"
+    }
+    return "bottom"
+}
+fun notifyFallback(options: NormalizedOptions, param: String?, errMsg: String): Unit {
+    if (options.fail == null) {
+        return
+    }
+    val f = ToastFail(errCode = ERR_PLATFORM_UNSUPPORTED, errSubject = TOAST_ERR_SUBJECT, errMsg = errMsg, param = param, platform = getPlatform())
+    options.fail!!(f)
+}
+fun showSelfDraw(options: NormalizedOptions): Unit {
+    var iconStr = iconToSelfDrawString(options.icon)
+    if (options.image != null) {
+        iconStr = "none"
+        notifyFallback(options, "image", "直挂窗口通道暂不渲染 image 自定义图标，已降级")
+    }
+    showWindowToast(options.title, iconStr, options.mask, options.duration, positionToSelfDrawString(options.position), fun(errMsg: String){
+        console.log("[toast] 窗口直挂失败，降级 uni.showToast: " + errMsg, " at uni_modules/ux-utils/utssdk/toast/channels/app/self-draw.uts:80")
+        showNative(options)
+        notifyFallback(options, null, "窗口直挂失败，已降级原生通道: " + errMsg)
+    }
+    )
+}
+fun hideSelfDraw(): Unit {
+    hideWindowToast()
+}
+fun notifyDegraded(options: ToastOptions, degraded: UTSArray<String>): Unit {
+    if (degraded.length === 0 || options.fail == null) {
+        return
+    }
+    val platform = getPlatform()
+    run {
+        var i: Number = 0
+        while(i < degraded.length){
+            val f = ToastFail(errCode = ERR_PLATFORM_UNSUPPORTED, errSubject = TOAST_ERR_SUBJECT, errMsg = "参数在当前端不支持，已降级处理", param = degraded[i], platform = platform)
+            options.fail!!(f)
+            i++
+        }
+    }
+}
+fun dispatchShow(options: NormalizedOptions): Unit {
+    showSelfDraw(options)
+}
+fun showToastImpl(options: ToastOptions): Unit {
+    val result = normalize(options)
+    notifyDegraded(options, result.degraded)
+    dispatchShow(result.options)
+}
+fun hideToastImpl(): Unit {
+    hideSelfDraw()
+}
+fun showToastAsyncImpl(options: ToastOptions): UTSPromise<Unit> {
+    return UTSPromise<Unit>(fun(resolve, reject){
+        val wrapped = ToastOptions(title = options.title, icon = options.icon, image = options.image, mask = options.mask, duration = options.duration, position = options.position, success = fun(res: ToastResult){
+            if (options.success != null) {
+                options.success!!(res)
+            }
+            resolve(Unit)
+        }
+        , fail = fun(err: ToastFail){
+            if (options.fail != null) {
+                options.fail!!(err)
+            }
+            val j: UTSJSONObject = _uO("__\$originalPosition" to UTSSourceMapPosition("j", "uni_modules/ux-utils/utssdk/toast/show-toast.uts", 81, 23), "errCode" to err.errCode, "errSubject" to err.errSubject, "errMsg" to err.errMsg, "param" to err.param, "platform" to err.platform)
+            reject(JSON.stringify(j))
+        }
+        , complete = options.complete)
+        showToastImpl(wrapped)
+    }
+    )
+}
+fun quickShow(title: String, icon: ToastIcon__1): Unit {
+    val defaults = getToastDefaults()
+    val duration: Number = if (defaults.duration != null) {
+        defaults.duration!!
+    } else {
+        BUILTIN_DURATION
+    }
+    val mask: Boolean = if (defaults.mask != null) {
+        defaults.mask!!
+    } else {
+        BUILTIN_MASK
+    }
+    val options = ToastOptions(title = title, icon = icon, image = null, mask = mask, duration = duration, position = null, success = null, fail = null, complete = null)
+    showToastImpl(options)
+}
+fun showToastSuccessImpl(title: String): Unit {
+    quickShow(title, "success")
+}
+fun showToastErrorImpl(title: String): Unit {
+    quickShow(title, "error")
+}
+fun showToastInfoImpl(title: String): Unit {
+    quickShow(title, "none")
+}
+typealias ModalErrorCode__1 = Number
+val MODAL_ERR_PARAM_INVALID: ModalErrorCode__1 = 1001
+val MODAL_ERR_PLATFORM_UNSUPPORTED: ModalErrorCode__1 = 2001
+val BUILTIN_CONFIRM_TEXT: String = "确定"
+val BUILTIN_CANCEL_TEXT: String = "取消"
+val BUILTIN_CONFIRM_COLOR: String = "#007aff"
+val BUILTIN_CANCEL_COLOR: String = "#000000"
+val BUILTIN_MAX_CONTENT_HEIGHT_PERCENT: Number = 60
+val MODAL_TEXT_MAX_LENGTH: Number = 4
+val MODAL_ERR_SUBJECT: String = "unix-utils:modal"
+fun isModalHexChar(c: String): Boolean {
+    val code = c.charCodeAt(0)
+    if (code == null) {
+        return false
+    }
+    if (code >= 48 && code <= 57) {
+        return true
+    }
+    if (code >= 65 && code <= 70) {
+        return true
+    }
+    if (code >= 97 && code <= 102) {
+        return true
+    }
+    return false
+}
+fun normalizeModalColor(value: String?, supportsAlpha: Boolean, param: String, degraded: UTSArray<String>): String? {
+    if (value == null) {
+        return null
+    }
+    if (!value.startsWith("#")) {
+        degraded.push(param)
+        return null
+    }
+    val hex = value.substring(1)
+    val len = hex.length
+    if (len != 3 && len != 6 && len != 8) {
+        degraded.push(param)
+        return null
+    }
+    run {
+        var i: Number = 0
+        while(i < len){
+            if (!isModalHexChar(hex.charAt(i))) {
+                degraded.push(param)
+                return null
+            }
+            i++
+        }
+    }
+    if (len == 3) {
+        val r = hex.charAt(0)
+        val g = hex.charAt(1)
+        val b = hex.charAt(2)
+        return "#" + r + r + g + g + b + b
+    }
+    if (len == 8) {
+        if (supportsAlpha) {
+            return value
+        }
+        degraded.push(param)
+        return "#" + hex.substring(0, 6)
+    }
+    return value
+}
+var currentModalDefaults = ModalDefaults(cancelText = null, confirmText = null, cancelColor = null, confirmColor = null)
+fun configureModalImpl(defaults: ModalDefaults): Unit {
+    currentModalDefaults = defaults
+}
+fun getModalDefaults(): ModalDefaults {
+    return currentModalDefaults
+}
+fun truncateModalText(text: String, platform: String): String {
+    if (platform === "mp-weixin" || platform === "app-harmony") {
+        if (text.length > MODAL_TEXT_MAX_LENGTH) {
+            return text.substring(0, MODAL_TEXT_MAX_LENGTH)
+        }
+    }
+    return text
+}
+fun normalizeModal(options: ModalOptions): NormalizeModalResult {
+    val platform = getPlatform()
+    val defaults = getModalDefaults()
+    val degraded: UTSArray<String> = _uA()
+    val title: String = if (options.title != null) {
+        options.title!!
+    } else {
+        ""
+    }
+    val content: String = if (options.content != null) {
+        options.content!!
+    } else {
+        ""
+    }
+    val showCancel: Boolean = if (options.showCancel != null) {
+        options.showCancel!!
+    } else {
+        true
+    }
+    val editable: Boolean = if (options.editable != null) {
+        options.editable!!
+    } else {
+        false
+    }
+    val placeholderText: String? = if (options.placeholderText != null) {
+        options.placeholderText
+    } else {
+        null
+    }
+    val rawCancelText = if (options.cancelText != null) {
+        options.cancelText!!
+    } else {
+        if (defaults.cancelText != null) {
+            defaults.cancelText!!
+        } else {
+            BUILTIN_CANCEL_TEXT
+        }
+    }
+    val rawConfirmText = if (options.confirmText != null) {
+        options.confirmText!!
+    } else {
+        if (defaults.confirmText != null) {
+            defaults.confirmText!!
+        } else {
+            BUILTIN_CONFIRM_TEXT
+        }
+    }
+    val cancelText: String = truncateModalText(rawCancelText, platform)
+    val confirmText: String = truncateModalText(rawConfirmText, platform)
+    val supportsAlpha = isSelfDrawPlatform(platform)
+    val rawCancelColor = if (options.cancelColor != null) {
+        options.cancelColor!!
+    } else {
+        defaults.cancelColor
+    }
+    val cancelColor: String? = normalizeModalColor(rawCancelColor, supportsAlpha, "cancelColor", degraded)
+    val rawConfirmColor = if (options.confirmColor != null) {
+        options.confirmColor!!
+    } else {
+        defaults.confirmColor
+    }
+    val confirmColor: String? = normalizeModalColor(rawConfirmColor, supportsAlpha, "confirmColor", degraded)
+    val normalized = NormalizedModalOptions(title = title, content = content, showCancel = showCancel, cancelText = cancelText, cancelColor = cancelColor, confirmText = confirmText, confirmColor = confirmColor, editable = editable, placeholderText = placeholderText, success = options.success, fail = options.fail, complete = options.complete)
+    val result = NormalizeModalResult(options = normalized, degraded = degraded)
+    return result
+}
+fun showModalNative(options: NormalizedModalOptions): Unit {
+    val platform = getPlatform()
+    uni_showModal(ShowModalOptions(title = options.title, content = options.content, showCancel = options.showCancel, cancelText = options.cancelText, cancelColor = options.cancelColor, confirmText = options.confirmText, confirmColor = options.confirmColor, editable = options.editable, placeholderText = options.placeholderText, success = fun(res: ShowModalSuccess){
+        if (options.success == null) {
+            return
+        }
+        val confirm = res.confirm == true
+        var content: String? = null
+        if (options.editable && confirm) {
+            val raw = res.content
+            content = if (raw != null) {
+                raw
+            } else {
+                ""
+            }
+        }
+        val r = ModalResult(confirm = confirm, cancel = !confirm, content = content)
+        options.success!!(r)
+    }
+    , fail = fun(err: ShowModalFail){
+        if (options.fail != null) {
+            val f = ModalFail(errCode = MODAL_ERR_PARAM_INVALID, errSubject = MODAL_ERR_SUBJECT, errMsg = err.errMsg, param = null, platform = platform)
+            options.fail!!(f)
+        }
+    }
+    , complete = fun(res: Any){
+        if (options.complete != null) {
+            options.complete!!(res)
+        }
+    }
+    ))
+}
+var modalCardRoot: View? = null
+var modalMaskRoot: View? = null
+var modalInput: EditText? = null
+fun modalDp2pxI(activity: Activity, dp: Number): Int {
+    val density = UTSNumber.from(activity.getResources().getDisplayMetrics().density)
+    return (dp * density).toInt()
+}
+fun modalDp2pxF(activity: Activity, dp: Number): Float {
+    val density = UTSNumber.from(activity.getResources().getDisplayMetrics().density)
+    return (dp * density).toFloat()
+}
+fun modalHexVal(c: String): Number {
+    val code = c.charCodeAt(0)
+    if (code == null) {
+        return 0
+    }
+    if (code >= 48 && code <= 57) {
+        return code - 48
+    }
+    if (code >= 65 && code <= 70) {
+        return code - 55
+    }
+    if (code >= 97 && code <= 102) {
+        return code - 87
+    }
+    return 0
+}
+fun parseModalColorInt(value: String?, fallback: Int): Int {
+    if (value == null) {
+        return fallback
+    }
+    val hex = value.substring(1)
+    var r: Number = 0
+    var g: Number = 0
+    var b: Number = 0
+    var a: Number = 255
+    if (hex.length == 6) {
+        r = modalHexVal(hex.charAt(0)) * 16 + modalHexVal(hex.charAt(1))
+        g = modalHexVal(hex.charAt(2)) * 16 + modalHexVal(hex.charAt(3))
+        b = modalHexVal(hex.charAt(4)) * 16 + modalHexVal(hex.charAt(5))
+    } else if (hex.length == 8) {
+        r = modalHexVal(hex.charAt(0)) * 16 + modalHexVal(hex.charAt(1))
+        g = modalHexVal(hex.charAt(2)) * 16 + modalHexVal(hex.charAt(3))
+        b = modalHexVal(hex.charAt(4)) * 16 + modalHexVal(hex.charAt(5))
+        a = modalHexVal(hex.charAt(6)) * 16 + modalHexVal(hex.charAt(7))
+    } else {
+        return fallback
+    }
+    return Color.argb(a.toInt(), r.toInt(), g.toInt(), b.toInt())
+}
+fun buildModalMask(activity: Activity): FrameLayout {
+    val root = FrameLayout(activity)
+    val dim = GradientDrawable()
+    dim.setColor(Color.parseColor("#80000000"))
+    root.setBackground(dim)
+    return root
+}
+fun buildModalButton(activity: Activity, text: String, colorHex: String): TextView {
+    val btn = TextView(activity)
+    btn.setText(text)
+    btn.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16.0f)
+    btn.setGravity(Gravity.CENTER)
+    btn.setTextColor(parseModalColorInt(colorHex, Color.parseColor(BUILTIN_CONFIRM_COLOR)))
+    return btn
+}
+fun modalButtonParams(activity: Activity): LinearLayout.LayoutParams {
+    val lp = LinearLayout.LayoutParams(0, modalDp2pxI(activity, 40.0))
+    lp.weight = 1.0f
+    return lp
+}
+fun modalRowLp(activity: Activity, topMarginDp: Number): LinearLayout.LayoutParams {
+    val lp = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+    lp.topMargin = modalDp2pxI(activity, topMarginDp)
+    return lp
+}
+open class ModalButtonClickListener : OnClickListener, IUTSSourceMap {
+    override fun `__$getOriginalPosition`(): UTSSourceMapPosition? {
+        return UTSSourceMapPosition("ModalButtonClickListener", "uni_modules/ux-utils/utssdk/modal/channels/app/window-android.uts", 146, 7)
+    }
+    private var modalOptions: NormalizedModalOptions
+    private var isConfirm: Boolean
+    constructor(options: NormalizedModalOptions, confirm: Boolean){
+        this.modalOptions = options
+        this.isConfirm = confirm
+    }
+    override fun onClick(v: View?): Unit {
+        finishWindowModal(this.modalOptions, this.isConfirm)
+    }
+}
+open class ModalBackKeyListener : OnKeyListener, IUTSSourceMap {
+    override fun `__$getOriginalPosition`(): UTSSourceMapPosition? {
+        return UTSSourceMapPosition("ModalBackKeyListener", "uni_modules/ux-utils/utssdk/modal/channels/app/window-android.uts", 161, 7)
+    }
+    private var modalOptions: NormalizedModalOptions
+    constructor(options: NormalizedModalOptions){
+        this.modalOptions = options
+    }
+    override fun onKey(v: View?, keyCode: Int, event: KeyEvent?): Boolean {
+        val ev = event
+        if (ev == null) {
+            return false
+        }
+        if (keyCode == KeyEvent.KEYCODE_BACK && ev.getAction() == KeyEvent.ACTION_DOWN) {
+            finishWindowModal(this.modalOptions, false)
+            return true
+        }
+        return false
+    }
+}
+fun buildModalCard(activity: Activity, options: NormalizedModalOptions): LinearLayout {
+    val card = LinearLayout(activity)
+    card.setOrientation(LinearLayout.VERTICAL)
+    val bg = GradientDrawable()
+    bg.setColor(Color.WHITE)
+    bg.setCornerRadius(modalDp2pxF(activity, 12.0))
+    card.setBackground(bg)
+    val padH = modalDp2pxI(activity, 20.0)
+    card.setPadding(padH, modalDp2pxI(activity, 24.0), padH, modalDp2pxI(activity, 16.0))
+    card.setMinimumWidth(modalDp2pxI(activity, 280.0))
+    if (options.title.length > 0) {
+        val title = TextView(activity)
+        title.setTextColor(Color.parseColor("#111111"))
+        title.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 17.0f)
+        title.setTypeface(Typeface.DEFAULT_BOLD)
+        title.setGravity(Gravity.CENTER)
+        title.setText(options.title)
+        card.addView(title, modalRowLp(activity, 0.0))
+    }
+    if (options.editable) {
+        val input = EditText(activity)
+        input.setText(options.content)
+        input.setSelection(options.content.length.toInt())
+        input.setSingleLine(true)
+        input.setTextColor(Color.parseColor("#333333"))
+        input.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14.0f)
+        input.setHintTextColor(Color.parseColor("#999999"))
+        if (options.placeholderText != null) {
+            input.setHint(options.placeholderText!!)
+        }
+        val inputBg = GradientDrawable()
+        inputBg.setColor(Color.WHITE)
+        inputBg.setCornerRadius(modalDp2pxF(activity, 4.0))
+        inputBg.setStroke(modalDp2pxI(activity, 1.0), Color.parseColor("#DDDDDD"))
+        input.setBackground(inputBg)
+        val vPad = modalDp2pxI(activity, 8.0)
+        input.setPadding(vPad, vPad, vPad, vPad)
+        input.setMinimumHeight(modalDp2pxI(activity, 36.0))
+        card.addView(input, modalRowLp(activity, 12.0))
+        modalInput = input
+    } else if (options.content.length > 0) {
+        val contentTv = TextView(activity)
+        contentTv.setTextColor(Color.parseColor("#666666"))
+        contentTv.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14.0f)
+        contentTv.setGravity(Gravity.CENTER)
+        contentTv.setText(options.content)
+        val wSpec = View.MeasureSpec.makeMeasureSpec(modalDp2pxI(activity, 240.0), View.MeasureSpec.AT_MOST)
+        contentTv.measure(wSpec, 0)
+        val measuredHeight = contentTv.getMeasuredHeight()
+        val metrics = activity.getResources().getDisplayMetrics()
+        val maxContentPx = (UTSNumber.from(metrics.heightPixels) * (BUILTIN_MAX_CONTENT_HEIGHT_PERCENT / 100.0)).toInt()
+        if (measuredHeight > maxContentPx) {
+            val sv = ScrollView(activity)
+            sv.setVerticalScrollBarEnabled(true)
+            val svLp = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, maxContentPx)
+            svLp.topMargin = modalDp2pxI(activity, 8.0)
+            sv.setLayoutParams(svLp)
+            val innerLp = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+            sv.addView(contentTv, innerLp)
+            card.addView(sv)
+        } else {
+            card.addView(contentTv, modalRowLp(activity, 8.0))
+        }
+    } else {
+        modalInput = null
+    }
+    val row = LinearLayout(activity)
+    row.setOrientation(LinearLayout.HORIZONTAL)
+    row.setLayoutParams(modalRowLp(activity, 20.0))
+    if (options.showCancel) {
+        val cancelColor = if (options.cancelColor != null) {
+            options.cancelColor!!
+        } else {
+            BUILTIN_CANCEL_COLOR
+        }
+        val cancelBtn = buildModalButton(activity, options.cancelText, cancelColor)
+        cancelBtn.setOnClickListener(ModalButtonClickListener(options, false))
+        row.addView(cancelBtn, modalButtonParams(activity))
+    }
+    val confirmColor = if (options.confirmColor != null) {
+        options.confirmColor!!
+    } else {
+        BUILTIN_CONFIRM_COLOR
+    }
+    val confirmBtn = buildModalButton(activity, options.confirmText, confirmColor)
+    confirmBtn.setOnClickListener(ModalButtonClickListener(options, true))
+    row.addView(confirmBtn, modalButtonParams(activity))
+    card.addView(row)
+    return card
+}
+fun finishWindowModal(options: NormalizedModalOptions, confirm: Boolean): Unit {
+    var content: String? = null
+    if (confirm && options.editable) {
+        val input = modalInput
+        content = if (input != null) {
+            input.getText().toString()
+        } else {
+            ""
+        }
+    }
+    hideWindowModalViews()
+    if (options.success == null) {
+        return
+    }
+    val r = ModalResult(confirm = confirm, cancel = !confirm, content = content)
+    options.success!!(r)
+    if (options.complete != null) {
+        options.complete!!(r)
+    }
+}
+fun hideWindowModalViews(): Unit {
+    val card = modalCardRoot
+    val mask = modalMaskRoot
+    if (card == null && mask == null) {
+        return
+    }
+    modalCardRoot = null
+    modalMaskRoot = null
+    modalInput = null
+    val act = UTSAndroid.getUniActivity()
+    if (act == null) {
+        return
+    }
+    val activity = act as Activity
+    activity.runOnUiThread(fun(){
+        try {
+            if (card != null) {
+                card.animate().alpha(0.0f).setDuration(200).start()
+            }
+            if (mask != null) {
+                mask.animate().alpha(0.0f).setDuration(200).start()
+            }
+            setTimeout(fun(){
+                val wm = activity.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+                if (card != null) {
+                    try {
+                        wm.removeView(card)
+                    }
+                     catch (e: Throwable) {}
+                }
+                if (mask != null) {
+                    try {
+                        wm.removeView(mask)
+                    }
+                     catch (e: Throwable) {}
+                }
+            }
+            , 220)
+        }
+         catch (e: Throwable) {}
+    }
+    )
+}
+fun dismissModalImmediate(): Unit {
+    val card = modalCardRoot
+    val mask = modalMaskRoot
+    modalCardRoot = null
+    modalMaskRoot = null
+    modalInput = null
+    val act = UTSAndroid.getUniActivity()
+    if (act == null) {
+        return
+    }
+    val activity = act as Activity
+    val wm = activity.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+    if (card != null) {
+        try {
+            wm.removeView(card)
+        }
+         catch (e: Throwable) {}
+    }
+    if (mask != null) {
+        try {
+            wm.removeView(mask)
+        }
+         catch (e: Throwable) {}
+    }
+}
+fun showWindowModal(options: NormalizedModalOptions, fail: ((errMsg: String) -> Unit)?): Unit {
+    val act = UTSAndroid.getUniActivity()
+    if (act == null) {
+        if (fail != null) {
+            fail("getUniActivity() 为 null，无法挂窗")
+        }
+        return
+    }
+    val activity = act as Activity
+    activity.runOnUiThread(fun(){
+        try {
+            dismissModalImmediate()
+            val token = activity.getWindow().getDecorView().getWindowToken()
+            if (token == null) {
+                if (fail != null) {
+                    fail("windowToken 为 null（页面未就绪），无法挂窗")
+                }
+                return
+            }
+            val wm = activity.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+            val maskParams = WindowManager.LayoutParams()
+            maskParams.type = WindowManager.LayoutParams.TYPE_APPLICATION_PANEL
+            maskParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+            maskParams.format = PixelFormat.TRANSLUCENT
+            maskParams.width = WindowManager.LayoutParams.MATCH_PARENT
+            maskParams.height = WindowManager.LayoutParams.MATCH_PARENT
+            maskParams.token = token
+            val maskView = buildModalMask(activity)
+            wm.addView(maskView, maskParams)
+            modalMaskRoot = maskView
+            val cardParams = WindowManager.LayoutParams()
+            cardParams.type = WindowManager.LayoutParams.TYPE_APPLICATION_PANEL
+            cardParams.format = PixelFormat.TRANSLUCENT
+            cardParams.width = WindowManager.LayoutParams.WRAP_CONTENT
+            cardParams.height = WindowManager.LayoutParams.WRAP_CONTENT
+            cardParams.gravity = Gravity.CENTER
+            if (options.editable) {
+                cardParams.softInputMode = WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE or WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN
+            }
+            cardParams.token = token
+            val card = buildModalCard(activity, options)
+            card.setFocusableInTouchMode(true)
+            card.setOnKeyListener(ModalBackKeyListener(options))
+            wm.addView(card, cardParams)
+            modalCardRoot = card
+            card.setAlpha(0.0f)
+            card.animate().alpha(1.0f).setDuration(200).start()
+            maskView.setAlpha(0.0f)
+            maskView.animate().alpha(1.0f).setDuration(200).start()
+            if (options.editable) {
+                val input = modalInput
+                if (input != null) {
+                    input.requestFocus()
+                }
+            } else {
+                card.requestFocus()
+            }
+            console.log("[unix-modal] addView 成功 editable=" + options.editable + " showCancel=" + options.showCancel, " at uni_modules/ux-utils/utssdk/modal/channels/app/window-android.uts:451")
+        }
+         catch (e: Throwable) {
+            if (fail != null) {
+                fail("挂窗异常: " + e.message)
+            }
+        }
+    }
+    )
+}
+fun notifyModalFallback(options: NormalizedModalOptions, param: String?, errMsg: String): Unit {
+    if (options.fail == null) {
+        return
+    }
+    val f = ModalFail(errCode = MODAL_ERR_PLATFORM_UNSUPPORTED, errSubject = MODAL_ERR_SUBJECT, errMsg = errMsg, param = param, platform = getPlatform())
+    options.fail!!(f)
+}
+fun showModalAppSelfDraw(options: NormalizedModalOptions): Unit {
+    showWindowModal(options, fun(errMsg: String){
+        console.log("[modal] 窗口直挂失败，降级 uni.showModal: " + errMsg, " at uni_modules/ux-utils/utssdk/modal/channels/app/self-draw.uts:49")
+        showModalNative(options)
+        notifyModalFallback(options, null, "窗口直挂失败，已降级原生通道: " + errMsg)
+    }
+    )
+}
+fun notifyModalDegraded(options: ModalOptions, degraded: UTSArray<String>): Unit {
+    if (degraded.length === 0 || options.fail == null) {
+        return
+    }
+    val platform = getPlatform()
+    run {
+        var i: Number = 0
+        while(i < degraded.length){
+            val f = ModalFail(errCode = MODAL_ERR_PLATFORM_UNSUPPORTED, errSubject = MODAL_ERR_SUBJECT, errMsg = "参数在当前端不支持，已降级处理", param = degraded[i], platform = platform)
+            options.fail!!(f)
+            i++
+        }
+    }
+}
+fun notifyModalParamInvalid(options: ModalOptions): Unit {
+    val f = ModalFail(errCode = MODAL_ERR_PARAM_INVALID, errSubject = MODAL_ERR_SUBJECT, errMsg = "title 与 content 至少其一非空", param = "title", platform = getPlatform())
+    if (options.fail != null) {
+        options.fail!!(f)
+    }
+    if (options.complete != null) {
+        options.complete!!(f)
+    }
+}
+fun dispatchModalShow(options: NormalizedModalOptions): Unit {
+    showModalAppSelfDraw(options)
+}
+fun showModalImpl(options: ModalOptions): Unit {
+    val title = if (options.title != null) {
+        options.title!!
+    } else {
+        ""
+    }
+    val content = if (options.content != null) {
+        options.content!!
+    } else {
+        ""
+    }
+    if (title.length === 0 && content.length === 0) {
+        notifyModalParamInvalid(options)
+        return
+    }
+    val result = normalizeModal(options)
+    notifyModalDegraded(options, result.degraded)
+    dispatchModalShow(result.options)
+}
+fun showModalAsyncImpl(options: ModalOptions): UTSPromise<ModalResult> {
+    return UTSPromise<ModalResult>(fun(resolve, reject){
+        val wrapped = ModalOptions(title = options.title, content = options.content, showCancel = options.showCancel, cancelText = options.cancelText, cancelColor = options.cancelColor, confirmText = options.confirmText, confirmColor = options.confirmColor, editable = options.editable, placeholderText = options.placeholderText, success = fun(res: ModalResult){
+            if (options.success != null) {
+                options.success!!(res)
+            }
+            resolve(res)
+        }
+        , fail = fun(err: ModalFail){
+            if (options.fail != null) {
+                options.fail!!(err)
+            }
+            val j: UTSJSONObject = _uO("__\$originalPosition" to UTSSourceMapPosition("j", "uni_modules/ux-utils/utssdk/modal/show-modal.uts", 105, 23), "errCode" to err.errCode, "errSubject" to err.errSubject, "errMsg" to err.errMsg, "param" to err.param, "platform" to err.platform)
+            reject(JSON.stringify(j))
+        }
+        , complete = options.complete)
+        showModalImpl(wrapped)
+    }
+    )
+}
+fun showModalAlertImpl(title: String, content: String?): Unit {
+    val options = ModalOptions(title = title, content = content, showCancel = false, cancelText = null, cancelColor = null, confirmText = null, confirmColor = null, editable = false, placeholderText = null, success = null, fail = null, complete = null)
+    showModalImpl(options)
+}
+val DEFAULT_DURATION: Number = 1500
+val DEFAULT_ICON: ToastIcon = "success"
+val DEFAULT_MASK: Boolean = false
+val TOAST_ERR_PARAM_INVALID: ToastErrorCode = 1001
+val TOAST_ERR_PLATFORM_UNSUPPORTED: ToastErrorCode = 2001
+val showToast: ShowToast = fun(options: ToastOptions): Unit {
+    showToastImpl(options)
+}
+val hideToast: HideToast = fun(): Unit {
+    hideToastImpl()
+}
+val showToastAsync: ShowToastAsync = fun(options: ToastOptions): UTSPromise<Unit> {
+    return showToastAsyncImpl(options)
+}
+val configureToast: ConfigureToast = fun(defaults: ToastDefaults): Unit {
+    configureToastImpl(defaults)
+}
+val showToastSuccess: ShowToastQuick = fun(title: String): Unit {
+    showToastSuccessImpl(title)
+}
+val showToastError: ShowToastQuick = fun(title: String): Unit {
+    showToastErrorImpl(title)
+}
+val showToastInfo: ShowToastQuick = fun(title: String): Unit {
+    showToastInfoImpl(title)
+}
+val DEFAULT_CONFIRM_TEXT: String = "确定"
+val DEFAULT_CANCEL_TEXT: String = "取消"
+val DEFAULT_CONFIRM_COLOR: String = "#007aff"
+val DEFAULT_CANCEL_COLOR: String = "#000000"
+val showModal: ShowModal = fun(options: ModalOptions): Unit {
+    showModalImpl(options)
+}
+val showModalAsync: ShowModalAsync = fun(options: ModalOptions): UTSPromise<ModalResult> {
+    return showModalAsyncImpl(options)
+}
+val showModalAlert: ShowModalAlert = fun(title: String, content: String?): Unit {
+    showModalAlertImpl(title, content)
+}
+val configureModal: ConfigureModal = fun(defaults: ModalDefaults): Unit {
+    configureModalImpl(defaults)
+}
+open class UniUTSMethodRegister {
+    companion object {
+        fun createUTSModalDefaults(options: UTSJSONObject): ModalDefaults {
+            return ModalDefaults(options.get("cancelText") as String?, options.get("confirmText") as String?, options.get("cancelColor") as String?, options.get("confirmColor") as String?)
+        }
+        fun createUTSModalOptions(options: UTSJSONObject): ModalOptions {
+            return ModalOptions(options.get("title") as String?, options.get("content") as String?, options.get("showCancel") as Boolean?, options.get("cancelText") as String?, options.get("cancelColor") as String?, options.get("confirmText") as String?, options.get("confirmColor") as String?, options.get("editable") as Boolean?, options.get("placeholderText") as String?, if (options.hasOwnProperty("success") && options.get("success") != null) {
+                (((options.get("success") as UTSCallback).fnJS ?: (fun(arg0: ModalResult): Unit {
+                    (options.get("success") as UTSCallback)(arg0)
+                }).also(fun(fnJS): Unit {
+                    (options.get("success") as UTSCallback).fnJS = fnJS
+                })) as (arg0: ModalResult) -> Unit)
+            } else {
+                null
+            }
+            , if (options.hasOwnProperty("fail") && options.get("fail") != null) {
+                (((options.get("fail") as UTSCallback).fnJS ?: (fun(arg0: ModalFail): Unit {
+                    (options.get("fail") as UTSCallback)(arg0)
+                }).also(fun(fnJS): Unit {
+                    (options.get("fail") as UTSCallback).fnJS = fnJS
+                })) as (arg0: ModalFail) -> Unit)
+            } else {
+                null
+            }
+            , if (options.hasOwnProperty("complete") && options.get("complete") != null) {
+                (((options.get("complete") as UTSCallback).fnJS ?: (fun(arg0: Any): Unit {
+                    (options.get("complete") as UTSCallback)(arg0)
+                }).also(fun(fnJS): Unit {
+                    (options.get("complete") as UTSCallback).fnJS = fnJS
+                })) as (arg0: Any) -> Unit)
+            } else {
+                null
+            }
+            )
+        }
+        fun createUTSToastDefaults(options: UTSJSONObject): ToastDefaults {
+            return ToastDefaults(options.get("duration") as Number?, options.get("icon") as ToastIcon?, options.get("mask") as Boolean?)
+        }
+        fun createUTSToastOptions(options: UTSJSONObject): ToastOptions {
+            return ToastOptions(options.get("title") as String, options.get("icon") as ToastIcon?, options.get("image") as String?, options.get("mask") as Boolean?, options.get("duration") as Number?, options.get("position") as ToastPosition?, if (options.hasOwnProperty("success") && options.get("success") != null) {
+                (((options.get("success") as UTSCallback).fnJS ?: (fun(arg0: ToastResult): Unit {
+                    (options.get("success") as UTSCallback)(arg0)
+                }).also(fun(fnJS): Unit {
+                    (options.get("success") as UTSCallback).fnJS = fnJS
+                })) as (arg0: ToastResult) -> Unit)
+            } else {
+                null
+            }
+            , if (options.hasOwnProperty("fail") && options.get("fail") != null) {
+                (((options.get("fail") as UTSCallback).fnJS ?: (fun(arg0: ToastFail): Unit {
+                    (options.get("fail") as UTSCallback)(arg0)
+                }).also(fun(fnJS): Unit {
+                    (options.get("fail") as UTSCallback).fnJS = fnJS
+                })) as (arg0: ToastFail) -> Unit)
+            } else {
+                null
+            }
+            , if (options.hasOwnProperty("complete") && options.get("complete") != null) {
+                (((options.get("complete") as UTSCallback).fnJS ?: (fun(arg0: Any): Unit {
+                    (options.get("complete") as UTSCallback)(arg0)
+                }).also(fun(fnJS): Unit {
+                    (options.get("complete") as UTSCallback).fnJS = fnJS
+                })) as (arg0: Any) -> Unit)
+            } else {
+                null
+            }
+            )
+        }
+        @UTSAutoRegister
+        fun registerUTSMethod(): Unit {
+            UTSBridge.registerUTSMethod("ux-utils", fun(methodId: Number, params: kotlin.Array<Any?>): Any? {
+                when (methodId) {
+                    0 -> 
+                        {
+                            when (params.size) {
+                                1 -> 
+                                    return showToast(createUTSToastOptions(params[0] as UTSJSONObject))
+                                else -> 
+                                    throw UTSError("showToast parameters length error, got " + params.size + " parameters")
+                            }
+                        }
+                    1 -> 
+                        {
+                            when (params.size) {
+                                0 -> 
+                                    return hideToast()
+                                else -> 
+                                    throw UTSError("hideToast parameters length error, got " + params.size + " parameters")
+                            }
+                        }
+                    2 -> 
+                        {
+                            when (params.size) {
+                                2 -> 
+                                    {
+                                        showToastAsync(createUTSToastOptions(params[1] as UTSJSONObject)).then(fun(res: Any?): Unit {
+                                            (params[0] as (res: Any?, err: Any?) -> Unit)(res, null)
+                                        }
+                                        ).`catch`(fun(err: Any?): Unit {
+                                            (params[0] as (res: Any?, err: Any?) -> Unit)(null, err)
+                                        }
+                                        )
+                                        return null
+                                    }
+                                else -> 
+                                    throw UTSError("showToastAsync parameters length error, got " + (params.size - 1) + " parameters")
+                            }
+                        }
+                    3 -> 
+                        {
+                            when (params.size) {
+                                1 -> 
+                                    return configureToast(createUTSToastDefaults(params[0] as UTSJSONObject))
+                                else -> 
+                                    throw UTSError("configureToast parameters length error, got " + params.size + " parameters")
+                            }
+                        }
+                    4 -> 
+                        {
+                            when (params.size) {
+                                1 -> 
+                                    return showToastSuccess(params[0] as String)
+                                else -> 
+                                    throw UTSError("showToastSuccess parameters length error, got " + params.size + " parameters")
+                            }
+                        }
+                    5 -> 
+                        {
+                            when (params.size) {
+                                1 -> 
+                                    return showToastError(params[0] as String)
+                                else -> 
+                                    throw UTSError("showToastError parameters length error, got " + params.size + " parameters")
+                            }
+                        }
+                    6 -> 
+                        {
+                            when (params.size) {
+                                1 -> 
+                                    return showToastInfo(params[0] as String)
+                                else -> 
+                                    throw UTSError("showToastInfo parameters length error, got " + params.size + " parameters")
+                            }
+                        }
+                    7 -> 
+                        {
+                            when (params.size) {
+                                1 -> 
+                                    return showModal(createUTSModalOptions(params[0] as UTSJSONObject))
+                                else -> 
+                                    throw UTSError("showModal parameters length error, got " + params.size + " parameters")
+                            }
+                        }
+                    8 -> 
+                        {
+                            when (params.size) {
+                                2 -> 
+                                    {
+                                        showModalAsync(createUTSModalOptions(params[1] as UTSJSONObject)).then(fun(res: Any?): Unit {
+                                            (params[0] as (res: Any?, err: Any?) -> Unit)(res, null)
+                                        }
+                                        ).`catch`(fun(err: Any?): Unit {
+                                            (params[0] as (res: Any?, err: Any?) -> Unit)(null, err)
+                                        }
+                                        )
+                                        return null
+                                    }
+                                else -> 
+                                    throw UTSError("showModalAsync parameters length error, got " + (params.size - 1) + " parameters")
+                            }
+                        }
+                    9 -> 
+                        {
+                            when (params.size) {
+                                1 -> 
+                                    return showModalAlert(params[0] as String, null)
+                                2 -> 
+                                    return showModalAlert(params[0] as String, params[1] as String?)
+                                else -> 
+                                    throw UTSError("showModalAlert parameters length error, got " + params.size + " parameters")
+                            }
+                        }
+                    10 -> 
+                        {
+                            when (params.size) {
+                                1 -> 
+                                    return configureModal(createUTSModalDefaults(params[0] as UTSJSONObject))
+                                else -> 
+                                    throw UTSError("configureModal parameters length error, got " + params.size + " parameters")
+                            }
+                        }
+                    else -> 
+                        throw UTSError("methodId " + methodId + " not found in module ux-utils")
+                }
+            }
+            )
+        }
+    }
+}

@@ -1,6 +1,6 @@
 # showToastAsync()
 
-The Promise-based version of `showToast()`: it resolves on success and rejects with the structured [ToastFail](/en/api/type-toast-fail) on failure. Internally it reuses the same normalization and dispatch pipeline, only wrapping the callbacks.
+The Promise-based version of `showToast()`: it resolves on success and rejects with a JSON string of the [ToastFail](/en/api/type-toast-fail) structure on failure (unified across all platforms; business code restores it via `JSON.parse<ToastFail>(err as string)`). Internally it reuses the same normalization and dispatch pipeline, only wrapping the callbacks.
 
 ## Type
 
@@ -16,8 +16,8 @@ Exactly the same as [showToast()](/en/api/show-toast#options-toastoptions).
 
 ## Return Value
 
-- **resolve**: the toast is displayed normally (including fallback scenarios — a fallback is an informational notice, not a reject);
-- **reject**: genuine failures such as invalid parameters; the rejection value is a `ToastFail` structure.
+- **resolve**: the toast is displayed normally;
+- **reject**: any `fail` callback firing along the pipeline rejects — both parameter errors (errCode 1001) and parameter fallbacks (errCode 2001) reject, and the rejection value is a JSON string of the `ToastFail` structure (unified across all platforms).
 
 ## Example
 
@@ -28,11 +28,14 @@ try {
 	await showToastAsync({ title: '加载中', icon: 'loading' })
 	// the toast is now visible
 } catch (err) {
-	console.error(`toast 失败：errCode=${err.errCode} param=${err.param} platform=${err.platform}`)
+	const fail = JSON.parse<ToastFail>(err as string)
+	if (fail != null) {
+		console.error(`toast 失败：errCode=${fail.errCode} param=${fail.param} platform=${fail.platform}`)
+	}
 }
 ```
 
 ## Notes
 
-- Parameter fallbacks (e.g. passing `position: 'top'` on WeChat) follow the `fail` callback semantics and **do not reject** — after the fallback the toast still displays; it is an informational notice. To detect fallbacks, use the callback-based [showToast()](/en/api/show-toast) and read its `fail` callback;
+- **Fallbacks also reject**: a parameter fallback (e.g. passing `position: 'top'` on WeChat, errCode 2001) fires the `fail` callback and the Promise rejects as well — after the fallback the toast still displays; it is an informational notice that business code may ignore after catching. If you do not want to handle fallback exceptions, use the callback-based [showToast()](/en/api/show-toast) and read its `fail` callback;
 - UTS supports Promise on all platforms, so this API works on all five platforms.

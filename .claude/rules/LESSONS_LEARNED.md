@@ -43,3 +43,11 @@
 22. **HBuilderX GUI「运行」不保证推送新资源**：M4/M5 两次真机回归中手机 www 时间戳停在旧版本（GUI 静默回退/未制作基座），改用 CLI 直部署稳定复现：`cli launch app-android --project <绝对路径> --deviceId <id> --cleanCache true`。**新包判定标准：console 日志的 at 路径**（新结构 = `uni_modules/unix-utils/utssdk/toast/channels/app/window-android.uts`，旧包显示 `uni_modules/unix-window/...`）。
 23. **`rm -rf unpackage/dist` 偶发 "Directory not empty"**：HBuilderX/编辑器进程并发写入所致，直接重跑同一命令即可；发布前全清 `unpackage/cache` + `unpackage/dist` 防缓存污染。
 24. **Agent 沙箱会干扰 adb exec（间歇 `Input/output error: adb`，exit 127）**：二进制本身完好（file 校验正常），疑似沙箱对 USB 设备访问的拦截；对 adb 类命令使用非沙箱模式（dangerouslyDisableSandbox）后稳定。同命令时好时坏时优先怀疑执行环境而非工具本身。
+
+## 2026-10-11 modal v0.2.0 M3 真机验证通过（async reject 跨界坍缩定位与 JSON 字符串契约定稿）
+
+### 运行时坑
+25. **uts-proxy `async: true` 代理对 Promise reject 值只保留字符串通道**（HBuilderX 5.26 蒸汽模式，Android 实测；运行时 `initUTSStaticMethod` 的 async 分支 `if (res.errMsg) { reject(res.errMsg) }`）：reject 类型化对象 / UTSJSONObject / UniError / Error 到业务侧全部丢字段——ModalFail 变 `"uts.sdk.modules.uxUtils.ModalFail@38d6e48"`（toString 形态），字段访问全 undefined；**纯字符串是唯一原样透传形态**。resolve 不受影响（有完整对象转换通道）。修复范式：库内用 UTSJSONObject 字面量中转五字段（`const j: UTSJSONObject = { errCode: err.errCode, ... }`）后 `reject(JSON.stringify(j))`，业务侧 `JSON.parse<ModalFail>(err as string)` 还原（TS 侧 `as` 被擦除，parse 还原是必须的）；ToastFail/ModalFail 五字段对称（errCode/errSubject/errMsg/param/platform）。回调式 fail 回调走回调桥接，对象完整送达，不受此约束。
+26. **「Possible Unhandled Promise Rejection」警告显示的是 native 侧原始对象（字段完整），业务 catch 到的是坍缩后字符串——是两个不同 promise，勿被警告误导**：该警告不能证明业务侧拿到完整对象；判定坍缩的可靠证据是业务侧 `JSON.stringify(err)` 输出带引号的字符串。
+27. **该运行时把 null 打印为 "undefined"**：成功回调里 `content=${res.content}` 显示 undefined 的普遍现象是 null 的打印形态，不是字段丢失，排查时勿混淆。
+28. **真机可观测通道优先级**：UI 渲染结果 + `adb screencap` 截图 > console.log（调试日志通道未 attach 时页面 console 不进 logcat/cli 流，且偶发单条丢失——本轮 toast catch 日志即缺失）；页面弹 UI（如错误 toast 回显 JSON）是可靠的取证手段。MIUI 禁止 adb 注入按键（`input keyevent WAKEUP` 报 SecurityException INJECT_EVENTS），息屏唤醒只能靠用户手动解锁。

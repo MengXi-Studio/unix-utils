@@ -47,11 +47,14 @@ showToast({
 	}
 })
 
-// Promise style (only invalid parameters reject)
+// Promise style (both invalid parameters and fallbacks reject; the rejection value is a JSON string of the ToastFail structure)
 try {
 	await showToastAsync({ title: '加载中' })
 } catch (err) {
-	console.error(err.errSubject, err.errCode, err.errMsg)
+	const fail = JSON.parse<ToastFail>(err as string)
+	if (fail != null) {
+		console.error(fail.errSubject, fail.errCode, fail.errMsg)
+	}
 }
 ```
 

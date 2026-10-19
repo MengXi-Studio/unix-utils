@@ -70,7 +70,11 @@ export function hideToastImpl(): void {
 }
 
 /**
- * Promise 式展示 toast（成功 resolve，失败 reject ToastFail）
+ * Promise 式展示 toast（成功 resolve，失败 reject ToastFail 结构的 JSON 字符串）
+ *
+ * 失败契约与 showModalAsync 统一：App端运行时 async 代理仅将 reject 值按
+ * 字符串透传（类型化对象字段全部丢失），故库内统一 JSON.stringify 后
+ * reject，业务侧 JSON.parse<ToastFail>(err as string) 还原。
  * @param options 选项
  * @returns Promise
  */
@@ -89,7 +93,14 @@ export function showToastAsyncImpl(options: ToastOptions): Promise<void> {
 			},
 			fail: (err: ToastFail) => {
 				if (options.fail != null) options.fail(err)
-				reject(err)
+				const j: UTSJSONObject = {
+					errCode: err.errCode,
+					errSubject: err.errSubject,
+					errMsg: err.errMsg,
+					param: err.param,
+					platform: err.platform
+				}
+				reject(JSON.stringify(j))
 			},
 			complete: options.complete
 		}

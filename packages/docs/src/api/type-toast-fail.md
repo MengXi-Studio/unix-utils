@@ -47,11 +47,14 @@ showToast({
 	}
 })
 
-// Promise 式（仅参数错误 reject）
+// Promise 式（参数错误与降级都会 reject，值为 ToastFail 结构的 JSON 字符串）
 try {
 	await showToastAsync({ title: '加载中' })
 } catch (err) {
-	console.error(err.errSubject, err.errCode, err.errMsg)
+	const fail = JSON.parse<ToastFail>(err as string)
+	if (fail != null) {
+		console.error(fail.errSubject, fail.errCode, fail.errMsg)
+	}
 }
 ```
 

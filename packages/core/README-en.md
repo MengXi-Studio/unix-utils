@@ -1,17 +1,35 @@
 [中文](./README.md) | **English**
 
 <div align="center">
+  <a href="https://github.com/MengXi-Studio/unix-utils">
+    <img alt="MengXi Studio Logo" width="215" src="https://github.com/MengXi-Studio/unix-utils/blob/master/packages/docs/src/public/logo.png">
+  </a>
+  <a href="https://github.com/MengXi-Studio/unix-utils">
+    <img alt="WeChat Official Account QR" width="215" src="https://github.com/MengXi-Studio/unix-utils/blob/master/packages/docs/src/public/QR_code.jpg">
+  </a>
+  <br>
   <h1>@meng-xi/unix-utils</h1>
-  <p>A collection of handy utilities for uni-app x (written in UTS, cross-platform, distributed via uni plugin market + npm)</p>
+  <p>A collection of handy utilities for uni-app x (written in UTS, one API set covering all platforms)</p>
 
 [![license](https://img.shields.io/github/license/MengXi-Studio/unix-utils.svg)](LICENSE) [![npm](https://img.shields.io/npm/v/@meng-xi/unix-utils?color=blue)](https://www.npmjs.com/package/@meng-xi/unix-utils)
 ![npm](https://img.shields.io/npm/dt/@meng-xi/unix-utils?color=green)
 
 </div>
 
+## Why unix-utils
+
+Write business code directly with `uni.showToast` / `uni.showModal` and the pitfalls hide in per-platform differences: `position` is unsupported on Mini Programs, the `fail` / `exception` icons behave unpredictably on most platforms, the modal `cancel` field is missing on some platforms, WeChat silently truncates button text, alpha color values behave differently per platform…… you hit each one, wrap it yourself, then do it all over again in the next project. unix-utils collapses that repeated work into a single library:
+
+- **Zero-cost migration?** Options share the exact signature of `uni.showToast` / `uni.showModal`, and results are constant (`confirm` / `cancel` always exist and are mutually exclusive) — switching libraries requires no business code changes;
+- **Multi-platform release?** The self-drawn channels on App / Web apply every option, while WeChat / HarmonyOS native channels degrade automatically with structured traces via the `fail` callback (`errCode` / `param` / `platform`) — differences are observable and filterable;
+- **Care about types?** Every field except `title` is optional, with literal union types and full UTS / TypeScript IntelliSense.
+
+No dialog stack is reinvented underneath: on App the library mounts native windows directly via UTS (Android `WindowManager` / iOS `UIWindow`), on Web it uses a self-drawn DOM singleton, and on Mini Programs it keeps the native `uni` API. Distributed as UTS source (Web / Mini Program → JS, Android → Kotlin, iOS → Swift), compiled on the fly by the uni-app x build chain.
+
 ## Features
 
-- **Cross-platform compatible** - Covers Android / iOS / Web / WeChat Mini Program / HarmonyOS with per-platform channels dispatched automatically — zero configuration in business code
+### toast module (cross-platform wrapper around uni.showToast)
+
 - **UTS native window on App** - Registration-free native windows (Android `WindowManager` / iOS `UIWindow`): position / warning / mask / precise duration all take effect, window-level lifecycle survives page navigation, with automatic fallback to `uni.showToast` on failure
 - **DOM singleton on Web** - Body-mounted singleton with position / warning / no platform truncation
 - **Fully aligned parameters** - Same signature as `uni.showToast` (`title / icon / image / mask / duration / position / success / fail / complete`), zero-cost migration
@@ -23,50 +41,66 @@
 - **Structured degradation** - `ToastFail` (`errCode` / `errSubject` / `param` / `platform`) reported through the `fail` callback — degradations are observable and filterable
 - **Strongly typed UTS** - All `ToastOptions` fields except `title` are optional; `icon` / `position` / error codes are literal union types
 
-## Installation
+### modal module (cross-platform wrapper around uni.showModal)
 
-**Option 1: uni plugin market** (recommended) — search for `unix-utils` in HBuilderX and import it into your project's `uni_modules/` directory.
+- **Fully aligned parameters** - Same signature as `uni.showModal` (`title / content / showCancel / cancelText / cancelColor / confirmText / confirmColor / editable / placeholderText / success / fail / complete`), zero-cost migration
+- **Consistent result values** - `confirm` / `cancel` in `ModalResult` always exist and are mutually exclusive (eliminating cross-platform differences where the `cancel` field may be missing); with `editable`, `content` carries the user input
+- **UTS native window on App** - Registration-free native windows (Android `WindowManager` / iOS `UIWindow`; since v0.2.0 App no longer goes through the `uni.showModal` native channel) for consistent dialog behavior across platforms
+- **Aligned interaction semantics** - Mask taps do not close the dialog (aligned with WeChat's official semantics), the Android back key closes it as a cancellation (`cancel = true`), and consecutive calls replace the previous dialog
+- **Real editable input** - Self-drawn channels render a real input; `content` doubles as the initial input value with the cursor placed at the end; content taller than 60% of the screen height (built-in threshold) scrolls automatically
+- **Color normalization** - Validates `#RGB` / `#RRGGBB` / `#RRGGBBAA`; invalid values fall back to the platform default color with a trace; alpha colors fully apply on the App / Web self-drawn channels and are stripped automatically with a trace on WeChat / HarmonyOS native channels; library defaults are confirm `#007aff` / cancel `#000000`
+- **Button text truncation on restricted platforms** - On WeChat / HarmonyOS, button text over 4 characters is truncated in the library (eliminating silent platform differences); full text on App / Web
+- **Promise style & shortcut APIs** - `showModalAsync` resolves on cancel (not a failure); `showModalAlert` provides single-confirm-button alert semantics
+- **Global defaults** - `configureModal` for project-level button text and color presets
+- **Structured degradation** - `ModalFail` (`errCode` 1001 invalid param / 2001 platform unsupported with fallback applied); `ModalFail` / `ModalResult` types are exported
 
-**Option 2: npm** — install and copy the package into your project's `uni_modules/unix-utils/` (the compiler does not scan node_modules):
+## Install
+
+**npm** — sync the package into your project's `uni_modules/unix-utils/` (the compiler does not scan node_modules):
 
 ```bash
 pnpm add @meng-xi/unix-utils
 mkdir -p uni_modules && cp -R node_modules/@meng-xi/unix-utils uni_modules/unix-utils
 ```
 
-> `packages/core` is a standard **uni_modules UTS plugin** (`utssdk/` official directory layout + `interface.uts` API declarations), distributed as UTS source: Web / Mini Program → JS, Android → Kotlin, iOS → Swift, compiled on the fly by the uni-app x build chain.
+**Plugin market**: search `unix-utils` in HBuilderX.
 
-## Quick Start
+> `packages/core` is a standard **uni_modules UTS plugin** (official `utssdk/` layout + `interface.uts` declarations); import from `@/uni_modules/unix-utils` in your code.
+
+## Quick start
 
 ### 1. Show your first toast
 
-```ts
+```uts
 import { showToast } from '@/uni_modules/unix-utils'
 
 // Same signature as uni.showToast, zero-cost migration
 showToast({
-	title: 'Saved',
-	icon: 'success',
-	duration: 2000
+  title: 'Saved',
+  icon: 'success',
+  duration: 2000
 })
 ```
 
 ### 2. Promise style & semantic shortcuts
 
-```ts
+```uts
 import {
-	showToastAsync,
-	showToastSuccess,
-	showToastError,
-	showToastInfo,
-	hideToast
+  showToastAsync,
+  showToastSuccess,
+  showToastError,
+  showToastInfo,
+  hideToast
 } from '@/uni_modules/unix-utils'
 
-// Promise style: rejects with a structured ToastFail on failure
+// Promise style: rejects with a JSON string of the ToastFail structure on failure (unified across all platforms, restored via JSON.parse)
 try {
-	await showToastAsync({ title: 'Loading', icon: 'loading' })
+  await showToastAsync({ title: 'Loading', icon: 'loading' })
 } catch (err) {
-	console.error(err.errCode, err.param, err.platform)
+  const fail = JSON.parse<ToastFail>(err as string)
+  if (fail != null) {
+    console.error(fail.errCode, fail.param, fail.platform)
+  }
 }
 
 // Semantic shortcuts
@@ -82,52 +116,79 @@ hideToast()
 
 ### 3. Global defaults
 
-```ts
+```uts
 import { configureToast } from '@/uni_modules/unix-utils'
 
 configureToast({
-	duration: 2000,  // default display duration
-	icon: 'success', // default icon
-	mask: false      // default transparent mask
+  duration: 2000,  // default display duration
+  icon: 'success', // default icon
+  mask: false      // default transparent mask
 })
 ```
 
-## Channel Architecture (auto-selected, zero configuration)
+### 4. Show your first modal dialog (modal module)
 
-| Platform | Channel | Description |
-| --- | --- | --- |
-| App-Android / App-iOS | UTS native window | Registration-free `WindowManager` / `UIWindow`; position / warning / image / mask all take effect; falls back to `uni.showToast` on failure |
-| Web | DOM singleton self-drawn | position / warning / no truncation all take effect |
-| WeChat / HarmonyOS | `uni.showToast` native | Unsupported parameters degrade automatically and are reported via the `fail` callback |
+```uts
+import { showModal } from '@/uni_modules/unix-utils'
 
-## Common ToastOptions
+// Same signature as uni.showModal, zero-cost migration
+showModal({
+  title: 'Delete Confirmation',
+  content: 'This action cannot be undone. Continue?',
+  confirmColor: '#ff0000',
+  success: (res) => {
+    if (res.confirm) doDelete() // confirm / cancel always exist and are mutually exclusive
+  }
+})
+```
 
-| Option | Type | Required | Default | Description |
-| --- | --- | --- | --- | --- |
-| `title` | `string` | ✅ | - | Toast content; truncated at 7 CJK chars on WeChat / 20 on HarmonyOS (no truncation on self-drawn channels) |
-| `icon` | `ToastIcon` | ✗ | `'success'` | Icon, see the literal union above |
-| `image` | `string` | ✗ | - | Local path of a custom icon image (not rendered on the App native-window channel yet — degrades to no icon with a callback notice) |
-| `mask` | `boolean` | ✗ | `false` | Transparent mask to prevent touch-through |
-| `duration` | `number` | ✗ | `1500` | Milliseconds, passed through without clamping |
-| `position` | `ToastPosition` | ✗ | - | `top` / `center` / `bottom` (degrades to center with a notice on native channels) |
-| `success` / `fail` / `complete` | callbacks | ✗ | - | `fail` receives a structured `ToastFail` (`errCode` 1001 invalid param / 2001 platform unsupported) |
+### 5. Promise style, alert semantics & global defaults
 
-## Degradation Behavior
+```uts
+import {
+  showModalAsync,
+  showModalAlert,
+  configureModal
+} from '@/uni_modules/unix-utils'
 
-On native-channel platforms (WeChat / HarmonyOS), unsupported parameters are reported through the `fail` callback with `errCode = 2001` (PLATFORM_UNSUPPORTED):
+// Promise style: tapping cancel is not a failure (resolve); failures reject with a JSON string of the ModalFail structure (unified across all platforms, restored via JSON.parse)
+const res = await showModalAsync({ title: 'Save Changes', content: 'Save your current changes?' })
+if (res.confirm) save()
 
-- `warning` icon → degrades to `none`
-- `position` → degrades to center
-- `image` gif → degrades to no custom image
-- `title` over the limit → truncated with an ellipsis at 7 chars (WeChat) / 20 chars (HarmonyOS)
+// alert semantics (single confirm button)
+showModalAlert('Notice', 'Operation completed')
 
-Self-drawn channels on App and Web apply every option with no degradation; the `image` custom image is not rendered on App yet (degrades to no icon with a callback notice).
+// Global defaults: passing null to a field keeps the library built-in default / platform default
+configureModal({
+  confirmText: 'Got it',
+  confirmColor: '#00aa00',
+  cancelText: null,
+  cancelColor: null
+})
+```
+
+### Verification
+
+The repo ships a demo app at [packages/playground](https://github.com/MengXi-Studio/unix-utils/tree/master/packages/playground) — a runnable verification matrix covering every feature (12 pages: 2 toast topics + 8 modal topics + 1 platform-native probe + home navigation), with in-page run logs on every test case so you can compare real behavior across platforms. Open `packages/playground` in HBuilderX to release H5 / WeChat Mini Program / Android and re-run the same suite.
+
+## Community & Support
+
+- 📖 [Documentation](https://mengxi-studio.github.io/unix-utils/) (guides + API reference + changelog, bilingual)
+- 🐛 [Issues](https://github.com/MengXi-Studio/unix-utils/issues) / 💬 [Discussions](https://github.com/MengXi-Studio/unix-utils/discussions)
 
 ## Exports
+
+### toast module
 
 - API: `showToast` / `showToastAsync` / `hideToast` / `configureToast` / `showToastSuccess` / `showToastError` / `showToastInfo`
 - Constants: `DEFAULT_DURATION` / `DEFAULT_ICON` / `DEFAULT_MASK` / `TOAST_ERR_PARAM_INVALID(1001)` / `TOAST_ERR_PLATFORM_UNSUPPORTED(2001)`
 - Literal union types: `ToastIcon` / `ToastPosition` / `ToastErrorCode`
+
+### modal module
+
+- API: `showModal` / `showModalAsync` / `showModalAlert` / `configureModal`
+- Constants: `DEFAULT_CONFIRM_TEXT` / `DEFAULT_CANCEL_TEXT` / `DEFAULT_CONFIRM_COLOR` / `DEFAULT_CANCEL_COLOR`
+- Exported types: `ModalResult` / `ModalFail` (import via `import type` for Promise callback typing and field access)
 
 ## Documentation
 
@@ -135,13 +196,11 @@ Self-drawn channels on App and Web apply every option with no degradation; the `
 
 **[https://mengxi-studio.github.io/unix-utils/](https://mengxi-studio.github.io/unix-utils/)**
 
-Suggested reading: start with the [Introduction](https://mengxi-studio.github.io/unix-utils/guide/introduction.html) and [Quick Start](https://mengxi-studio.github.io/unix-utils/guide/getting-started.html), then dive into platform behavior with [Toast](https://mengxi-studio.github.io/unix-utils/guide/toast.html) and [Channel Architecture & Degradation](https://mengxi-studio.github.io/unix-utils/guide/channels.html); for API details see the [API Reference](https://mengxi-studio.github.io/unix-utils/api/show-toast.html).
-
-> The documentation site is currently available in Chinese only; an English version is planned.
+Suggested reading: start with the [Introduction](https://mengxi-studio.github.io/unix-utils/guide/introduction.html) and [Quick Start](https://mengxi-studio.github.io/unix-utils/guide/getting-started.html), then dive into platform behavior with [Toast](https://mengxi-studio.github.io/unix-utils/guide/toast.html) → [Modal](https://mengxi-studio.github.io/unix-utils/guide/modal.html) → [Channel Architecture & Degradation](https://mengxi-studio.github.io/unix-utils/guide/channels.html); for API details see [showToast](https://mengxi-studio.github.io/unix-utils/api/show-toast.html) and [showModal](https://mengxi-studio.github.io/unix-utils/api/show-modal.html).
 
 ## Changelog
 
-📝 **[https://github.com/MengXi-Studio/unix-utils/blob/master/packages/core/changelog.md](https://github.com/MengXi-Studio/unix-utils/blob/master/packages/core/changelog.md)**
+📝 **[https://mengxi-studio.github.io/unix-utils/changelog.html](https://mengxi-studio.github.io/unix-utils/changelog.html)**
 
 ## License
 

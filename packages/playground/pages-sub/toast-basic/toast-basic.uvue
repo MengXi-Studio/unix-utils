@@ -1,0 +1,84 @@
+<template>
+	<scroll-view style="flex:1">
+		<view class="container">
+			<view class="intro">
+				<text class="intro-title">功能说明</text>
+				<text class="intro-text">快捷 API（showToastSuccess / showToastError / showToastInfo）与 showToast 完整参数（icon / mask / duration）。icon='warning' 在 App 端降级为 icon='none' 并 fail 2001 留痕。</text>
+			</view>
+
+			<text class="section">用例</text>
+			<view class="row">
+				<button size="mini" @click="t01Success">01 成功</button>
+				<button size="mini" @click="t02Error">02 错误</button>
+				<button size="mini" @click="t03Info">03 信息</button>
+				<button size="mini" @click="t04Warning">04 警告+蒙层+时长</button>
+			</view>
+
+			<view class="logs">
+				<view class="logs-head">
+					<text class="logs-title">运行日志</text>
+					<button size="mini" @click="clearLog">清空</button>
+				</view>
+				<text v-for="(line, index) in logs" :key="index" class="log">{{ line }}</text>
+			</view>
+		</view>
+	</scroll-view>
+</template>
+
+<script setup lang="uts">
+	// 页面声明宏：编译期由 @meng-xi/unix-router/vite-plugin 剥离，驱动 pages.json 与路由表生成
+	defineUniPage({
+		title: 'toast 快捷 API',
+		name: 'toast-basic'
+	})
+	import { showToast, showToastSuccess, showToastError, showToastInfo } from '@/uni_modules/ux-utils'
+
+	const logs = reactive<string[]>([])
+
+	function log(tag: string, msg: string): void {
+		const line = '[' + tag + '] ' + msg
+		logs.unshift(line)
+		if (logs.length > 200) {
+			logs.splice(200, logs.length - 200)
+		}
+		console.log(line)
+	}
+
+	function clearLog(): void {
+		logs.splice(0, logs.length)
+	}
+
+	/* ===== 01 快捷 API：成功 ===== */
+	function t01Success(): void {
+		showToastSuccess('操作成功')
+		log('01', 'showToastSuccess 已调用')
+	}
+
+	/* ===== 02 快捷 API：错误 ===== */
+	function t02Error(): void {
+		showToastError('操作失败')
+		log('02', 'showToastError 已调用')
+	}
+
+	/* ===== 03 快捷 API：信息 ===== */
+	function t03Info(): void {
+		showToastInfo('这是一条消息')
+		log('03', 'showToastInfo 已调用')
+	}
+
+	/* ===== 04 完整参数：icon warning + mask + duration ===== */
+	function t04Warning(): void {
+		showToast({
+			title: '请注意',
+			icon: 'warning',
+			mask: true,
+			duration: 2000,
+			success: () => {
+				log('04', 'success 已触发')
+			},
+			fail: (err) => {
+				log('04', 'fail ' + err.errCode.toString() + ' ' + err.errMsg + ' param=' + (err.param != null ? err.param : 'null'))
+			}
+		})
+	}
+</script>

@@ -13,6 +13,16 @@ The core strategy of unix-utils is **per-platform mixed implementation**: each p
 
 > Why the App side bypasses `uni.showToast` and attaches to windows directly: the native channel's `position` only supports `bottom` on Android, icon values are not aligned, and lifecycle binding is inconsistent — these presentation-layer differences can only be eliminated by window-level self-drawing. Meanwhile, the Android system `Toast` does not support icon/mask, and iOS has no system Toast API at all, so direct window attachment with self-drawing is the only path on App where "every parameter takes effect".
 
+The modal module (since v0.2) has a different channel split:
+
+| Platform | Channel | Implementation |
+| --- | --- | --- |
+| App-Android / App-iOS | UTS direct attachment to system windows with self-drawing | Registration-free window attachment via `WindowManager` / `UIWindow` + mask + centered card + button row + real input (editable); since v0.2.0 the App side no longer uses the native `uni.showModal` channel |
+| Web | Self-drawn DOM singleton | body-mounted singleton + mask + centered card + button row + `input` (editable); mask taps do not close; text and alpha colors fully effective |
+| WeChat / HarmonyOS | Native `uni.showModal` | Direct call + in-library normalization (color validation and alpha stripping, restricted-platform text truncation, return value `confirm` / `cancel` always present and mutually exclusive) |
+
+> Why modal also does App-side window-attachment self-drawing: the parameters of the `uni.showModal` native channel are basically aligned in semantics across platforms, and most residual differences (text truncation, missing return-value fields) can be smoothed out in the in-library normalization layer; however, presentation-layer differences such as the editable input's `content` initial value / cursor control and alpha colors being stripped on native platforms cannot be normalized away. Since v0.2.0, modal reuses toast's window-attachment infrastructure, giving the App side a real editable input, full alpha color support, mask taps that never close, and Android back-button cancel semantics — the dialog presentation is consistent with the Web self-drawn channel. WeChat / HarmonyOS keep the native channel: self-drawing on Mini Programs would run into native-component and native-dialog occlusion issues, and the native modal's parameter semantics are aligned enough that normalization suffices.
+
 ## Dispatch Flow
 
 ```
@@ -51,6 +61,27 @@ Behavior of each parameter across the three channels (✅ fully effective / ⚠�
 | Consecutive calls | ✅ Window reused with content replaced | ✅ Singleton replaced | ✅ Replaced |
 | Lifecycle | ✅ System-window level, survives across pages | ✅ Survives within the SPA | Bound to the page (disappears when the page closes) |
 
+## Modal Normalization Matrix
+
+Behavior of each modal parameter across the three channels (✅ fully effective / ⚠️ falls back with a trace):
+
+| Parameter | App (window-attachment self-drawn channel) | Web (self-drawn channel) | WeChat / HarmonyOS (native channel) |
+| --- | --- | --- | --- |
+| `title` / `content` | ✅ Really rendered (written via `textContent` to avoid XSS) | ✅ Really rendered (written via `textContent` to avoid XSS) | ✅ Rendered natively |
+| `showCancel` | ✅ | ✅ | ✅ |
+| `cancelText` / `confirmText` | ✅ Full display | ✅ Full display | ⚠️ Silently truncated beyond 4 characters on WeChat / HarmonyOS |
+| `cancelColor` / `confirmColor` = `#RGB` / `#RRGGBB` | ✅ (`#RGB` expanded to `#RRGGBB`) | ✅ (`#RGB` expanded to `#RRGGBB`) | ✅ (`#RGB` expanded to `#RRGGBB`) |
+| `cancelColor` / `confirmColor` = `#RRGGBBAA` | ✅ Alpha fully effective | ✅ Alpha fully effective | ⚠️ Alpha stripped then applied, errCode 2001 |
+| Invalid color values | ⚠️ Falls back to the built-in default color, errCode 2001 | ⚠️ Falls back to the built-in default color, errCode 2001 | ⚠️ Falls back to the platform default color, errCode 2001 |
+| `editable` | ✅ Really renders an input (`content` as the initial value, cursor at the end) | ✅ Really renders an `<input>` (`content` as the initial value, cursor at the end) | ✅ (`content` doubles as the input's initial value, cursor position decided by the platform) |
+| `placeholderText` | ✅ | ✅ | ✅ |
+| Body text height capping | ✅ Height-capped and scrolls beyond 60% of the screen height | ✅ Height-capped and scrolls beyond 60% of the screen height | ✅ Native behavior |
+| Return value `confirm` / `cancel` | ✅ Always present and mutually exclusive | ✅ Always present and mutually exclusive | ✅ Always present and mutually exclusive via in-library normalization |
+| Tapping the mask | Does not close (only buttons close it) | Does not close (only buttons close it) | Native behavior (does not close) |
+| Android back button | Closes with cancel semantics (`cancel: true`) | — (no system back button) | — (the back button acts on page navigation) |
+| Consecutive calls | Singleton replaced | Singleton replaced | ✅ Replaced |
+| Lifecycle | System-window level | DOM singleton, survives within the SPA | Page-level modal, blocks interaction |
+
 ## Fallback Perception: the fail Callback
 
 Every fallback returns structured [ToastFail](/en/api/type-toast-fail) through the `fail` callback, so business code can precisely perceive "which parameter, which platform":
@@ -72,6 +103,23 @@ showToast({
 - errCode `2001` (PLATFORM_UNSUPPORTED) is an **informational** notice: the parameter has fallen back and the toast still shows as usual; business code may choose to ignore it;
 - errCode `1001` (PARAM_INVALID) is a genuine parameter error.
 
+modal likewise returns the structured [ModalFail](/en/api/type-modal-fail) through the `fail` callback (`errSubject: 'unix-utils:modal'`):
+
+```ts
+showModal({
+	title: '提示',
+	content: '继续操作',
+	confirmColor: 'blue', // invalid color: named colors are not supported by native channels
+	fail: (err) => {
+		// errCode: 2001 (PLATFORM_UNSUPPORTED)
+		// param: 'confirmColor' — the parameter name that triggered the fallback
+		// platform: 'mp-weixin' — the current platform identifier
+	}
+})
+```
+
+modal specifics: when both `title` and `content` are empty, it fails with 1001 (`param: 'title'`) and no dialog is shown; under the Promise-based [showModalAsync](/en/api/show-modal-async), a fallback (2001) also rejects (the rejection value is a JSON string of the `ModalFail` structure, unified across all platforms; business code restores it via `JSON.parse<ModalFail>(err as string)`).
+
 ## Three Principles for the Presentation Layer
 
 The WeChat / HarmonyOS sides keep the native channel; their residual differences (visual style, lifecycle binding) are managed by three principles:
@@ -83,5 +131,5 @@ The WeChat / HarmonyOS sides keep the native channel; their residual differences
 ## Known Constraints
 
 - **App side**: the attached window covers everything in the page tree (including above the native tabbar), but independent layers of the `SurfaceView` kind (native video layers, maps) and system UI (status bar / navigation bar / system dialogs) still sit above it — ordinary business scenarios are unaffected;
-- **App-side mask**: the mask intercepts touches but does not consume the back button; the Android back button still acts on the business page stack;
+- **App-side toast mask**: the mask intercepts touches but does not consume the back button; the Android back button still acts on the business page stack (modal is different: the back button closes the dialog with cancel semantics);
 - **The trade-off of self-drawing on Mini Programs**: self-drawn toasts on WeChat would be occluded by native components (video / map / camera) and native dialogs, so keeping the native channel on WeChat / HarmonyOS is a deliberately weighed choice.

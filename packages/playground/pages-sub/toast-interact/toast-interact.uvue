@@ -1,0 +1,95 @@
+<template>
+	<scroll-view style="flex:1">
+		<view class="container">
+			<view class="intro">
+				<text class="intro-title">功能说明</text>
+				<text class="intro-text">position 顶部展示 / mask 蒙层拦截触摸 / hideToast 手动提前隐藏 / showToastAsync 失败契约（icon='fail' 全端触发降级，reject 值为 ToastFail 结构 JSON 字符串）。</text>
+			</view>
+
+			<text class="section">用例</text>
+			<view class="row">
+				<button size="mini" @click="t01Top">01 顶部展示</button>
+				<button size="mini" @click="t02Mask">02 蒙层拦截</button>
+				<button size="mini" @click="t03Hide">03 手动隐藏</button>
+				<button size="mini" @click="t04AsyncFail">04 async 降级 reject</button>
+			</view>
+
+			<view class="logs">
+				<view class="logs-head">
+					<text class="logs-title">运行日志</text>
+					<button size="mini" @click="clearLog">清空</button>
+				</view>
+				<text v-for="(line, index) in logs" :key="index" class="log">{{ line }}</text>
+			</view>
+		</view>
+	</scroll-view>
+</template>
+
+<script setup lang="uts">
+	// 页面声明宏：编译期由 @meng-xi/unix-router/vite-plugin 剥离，驱动 pages.json 与路由表生成
+	defineUniPage({
+		title: 'toast 交互与降级',
+		name: 'toast-interact'
+	})
+	import { showToast, showToastAsync, hideToast, showToastError } from '@/uni_modules/ux-utils'
+
+	const logs = reactive<string[]>([])
+
+	function log(tag: string, msg: string): void {
+		const line = '[' + tag + '] ' + msg
+		logs.unshift(line)
+		if (logs.length > 200) {
+			logs.splice(200, logs.length - 200)
+		}
+		console.log(line)
+	}
+
+	function clearLog(): void {
+		logs.splice(0, logs.length)
+	}
+
+	/* ===== 01 position: top 顶部展示 ===== */
+	function t01Top(): void {
+		showToast({
+			title: '顶部提示',
+			position: 'top'
+		})
+		log('01', 'showToast position=top 已调用')
+	}
+
+	/* ===== 02 mask: true 蒙层拦截触摸 ===== */
+	function t02Mask(): void {
+		showToast({
+			title: '蒙层提示（触摸被拦截）',
+			mask: true
+		})
+		log('02', 'showToast mask=true 已调用，可尝试点击页面验证拦截')
+	}
+
+	/* ===== 03 hideToast：5 秒 toast，1.5 秒后手动隐藏 ===== */
+	function t03Hide(): void {
+		showToast({
+			title: '5 秒后自动消失，可提前隐藏',
+			duration: 5000
+		})
+		log('03', '已弹出 5s toast，1.5s 后手动隐藏')
+		setTimeout(() => {
+			hideToast()
+			log('03', 'hideToast 已调用')
+		}, 1500)
+	}
+
+	/* ===== 04 showToastAsync 失败契约：icon='fail' 全端触发降级 ===== */
+	function t04AsyncFail(): void {
+		showToastAsync({
+			title: 'icon=fail 降级测试',
+			icon: 'fail'
+		}).then(() => {
+			log('04', 'resolve（未触发降级）')
+		}).catch((err) => {
+			const msg = err as string
+			log('04', 'reject: ' + msg)
+			showToastError('reject 已回显')
+		})
+	}
+</script>
