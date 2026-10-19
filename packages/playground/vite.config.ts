@@ -13,7 +13,7 @@ export default defineConfig({
 				dts: 'define-uni-page.d.ts'
 			},
 			router: {
-				outputPath: 'routes.gen.uts',
+				outputPath: 'router/routes.gen.uts',
 				importFrom: '@/uni_modules/ux-router/utssdk/index.uts',
 				dts: 'route-name.gen.d.ts'
 			}
