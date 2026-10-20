@@ -171,6 +171,8 @@ configureModal({
 
 仓库自带示例工程 [packages/playground](https://github.com/MengXi-Studio/unix-utils/tree/master/packages/playground) 是覆盖全部特性的可运行验证矩阵（12 个页面：2 个 toast 专题 + 8 个 modal 专题 + 1 个平台原生探针 + 主页导航），每个用例带页内运行日志，可直接对照各端真实表现。用 HBuilderX 打开 `packages/playground` 即可发行 H5 / 微信小程序 / Android，复验同一组用例。
 
+**Android 体验包（云打包产物）**：[下载 APK](https://mp-b8b8347a-48e9-434d-8302-3e9d99c2cb01.cdn.bspapp.com/cloudstorage/app-build-pkg/1792463929395-__UNI__7970947_1792463883197.apk)
+
 ## 交流与支持
 
 想了解设计思路与实现原理（UTS 直挂系统窗口、分端混合通道的归一化降级设计等）？公众号「**梦曦工作室**」有系列解析，扫码关注：

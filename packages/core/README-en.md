@@ -171,6 +171,8 @@ configureModal({
 
 The repo ships a demo app at [packages/playground](https://github.com/MengXi-Studio/unix-utils/tree/master/packages/playground) — a runnable verification matrix covering every feature (12 pages: 2 toast topics + 8 modal topics + 1 platform-native probe + home navigation), with in-page run logs on every test case so you can compare real behavior across platforms. Open `packages/playground` in HBuilderX to release H5 / WeChat Mini Program / Android and re-run the same suite.
 
+**Android demo APK (cloud-packaged build)**: [Download APK](https://mp-b8b8347a-48e9-434d-8302-3e9d99c2cb01.cdn.bspapp.com/cloudstorage/app-build-pkg/1792463929395-__UNI__7970947_1792463883197.apk)
+
 ## Community & Support
 
 - 📖 [Documentation](https://mengxi-studio.github.io/unix-utils/) (guides + API reference + changelog, bilingual)
