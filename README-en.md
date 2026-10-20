@@ -184,7 +184,7 @@ The repo ships a demo app at [packages/playground](https://github.com/MengXi-Stu
 
 - API: `showToast` / `showToastAsync` / `hideToast` / `configureToast` / `showToastSuccess` / `showToastError` / `showToastInfo`
 - Constants: `DEFAULT_DURATION` / `DEFAULT_ICON` / `DEFAULT_MASK` / `TOAST_ERR_PARAM_INVALID(1001)` / `TOAST_ERR_PLATFORM_UNSUPPORTED(2001)`
-- Literal union types: `ToastIcon` / `ToastPosition` / `ToastErrorCode`
+- Exported type: `ToastFail` (import via `import type` for fail callback typing and `JSON.parse` restoration); `icon` / `position` / error codes are literal unions — pass literals directly
 
 ### modal module
 

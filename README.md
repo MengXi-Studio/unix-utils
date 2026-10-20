@@ -190,7 +190,7 @@ configureModal({
 
 - API：`showToast` / `showToastAsync` / `hideToast` / `configureToast` / `showToastSuccess` / `showToastError` / `showToastInfo`
 - 常量：`DEFAULT_DURATION` / `DEFAULT_ICON` / `DEFAULT_MASK` / `TOAST_ERR_PARAM_INVALID(1001)` / `TOAST_ERR_PLATFORM_UNSUPPORTED(2001)`
-- 字面量联合类型：`ToastIcon` / `ToastPosition` / `ToastErrorCode`
+- 对外类型：`ToastFail`（`import type` 引入，用于 fail 回调标注与 `JSON.parse` 还原）；`icon` / `position` / 错误码为字面量联合值域，直接传字面量即可
 
 ### modal 模块
 
